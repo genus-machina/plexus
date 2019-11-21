@@ -1,4 +1,4 @@
-package buses
+package bus
 
 import (
 	"log"
@@ -16,7 +16,7 @@ var (
 )
 
 func TestDeviceBusActivateExisting(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator := actuators.NewSimulator("test indicator")
 	bus.RegisterDevice(indicator)
 	err := bus.Activate("test indicator")
@@ -31,7 +31,7 @@ func TestDeviceBusActivateExisting(t *testing.T) {
 }
 
 func TestDeviceBusActivateMissing(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	err := bus.Activate("test indicator")
 
 	if message := err.Error(); !strings.Contains(message, "registered") {
@@ -40,7 +40,7 @@ func TestDeviceBusActivateMissing(t *testing.T) {
 }
 
 func TestDeviceBusDeactivateExisting(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator := actuators.NewSimulator("test indicator")
 	bus.RegisterDevice(indicator)
 	bus.Activate("test indicator")
@@ -56,7 +56,7 @@ func TestDeviceBusDeactivateExisting(t *testing.T) {
 }
 
 func TestDeviceBusDeactivateMissing(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	err := bus.Deactivate("test indicator")
 
 	if message := err.Error(); !strings.Contains(message, "registered") {
@@ -65,7 +65,7 @@ func TestDeviceBusDeactivateMissing(t *testing.T) {
 }
 
 func TestDeviceBusActivationError(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator := actuators.NewSimulator("test indicator")
 	bus.RegisterDevice(indicator)
 	indicator.Halt()
@@ -77,7 +77,7 @@ func TestDeviceBusActivationError(t *testing.T) {
 }
 
 func TestDeviceBusDeactivationError(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator := actuators.NewSimulator("test indicator")
 	bus.RegisterDevice(indicator)
 	indicator.Halt()
@@ -89,7 +89,7 @@ func TestDeviceBusDeactivationError(t *testing.T) {
 }
 
 func TestDeviceBusHalt(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator1 := actuators.NewSimulator("one")
 	indicator2 := actuators.NewSimulator("two")
 	bus.RegisterDevice(indicator1)
@@ -110,7 +110,7 @@ func TestDeviceBusHalt(t *testing.T) {
 }
 
 func TestDeviceBusHaltError(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	indicator1 := actuators.NewSimulator("one")
 	indicator2 := actuators.NewSimulator("two")
 	bus.RegisterDevice(indicator1)
@@ -124,7 +124,7 @@ func TestDeviceBusHaltError(t *testing.T) {
 }
 
 func TestDeviceBusSubscribeMissing(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	channel, err := bus.Subscribe("test")
 
 	if channel != nil {
@@ -137,7 +137,7 @@ func TestDeviceBusSubscribeMissing(t *testing.T) {
 }
 
 func TestDeviceBusSubscribeExisting(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	trigger := triggers.NewSimulator("trigger")
 	bus.RegisterDevice(trigger)
 	changes, err := bus.Subscribe("trigger")
@@ -171,7 +171,7 @@ func TestDeviceBusSubscribeExisting(t *testing.T) {
 }
 
 func TestDeviceBusRegisterDuplicate(t *testing.T) {
-	bus := NewDeviceBus(logger)
+	bus := New(logger)
 	actuator := actuators.NewSimulator("test")
 	trigger := actuators.NewSimulator("test")
 	bus.RegisterDevice(actuator)

@@ -9,12 +9,12 @@ import (
 	"github.com/genus-machina/plexus/hippocampus"
 	"github.com/genus-machina/plexus/medulla"
 	"github.com/genus-machina/plexus/medulla/actuators"
-	"github.com/genus-machina/plexus/medulla/buses"
+	"github.com/genus-machina/plexus/medulla/bus"
 	"github.com/genus-machina/plexus/medulla/triggers"
 )
 
 type System struct {
-	DeviceBus medulla.DeviceBus
+	DeviceBus *bus.DeviceBus
 }
 
 func parseJSON(path string) (*systemConfig, error) {
@@ -66,7 +66,7 @@ func buildSimulator(config *deviceConfig) (medulla.Device, error) {
 
 func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 	system := new(System)
-	system.DeviceBus = buses.NewDeviceBus(hippocampus.ChildLogger(logger, "device bus"))
+	system.DeviceBus = bus.New(hippocampus.ChildLogger(logger, "device bus"))
 
 	devices, err := buildDevices(config)
 	if err != nil {

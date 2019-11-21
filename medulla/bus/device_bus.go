@@ -1,4 +1,4 @@
-package buses
+package bus
 
 import (
 	"fmt"
@@ -9,19 +9,19 @@ import (
 
 type deviceMap map[string]medulla.Device
 
-type simpleDeviceBus struct {
+type DeviceBus struct {
 	devices deviceMap
 	log     *log.Logger
 }
 
-func NewDeviceBus(logger *log.Logger) *simpleDeviceBus {
-	bus := new(simpleDeviceBus)
+func New(logger *log.Logger) *DeviceBus {
+	bus := new(DeviceBus)
 	bus.devices = make(deviceMap)
 	bus.log = logger
 	return bus
 }
 
-func (bus *simpleDeviceBus) Activate(name string) error {
+func (bus *DeviceBus) Activate(name string) error {
 	actuator, err := bus.getActuator(name)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (bus *simpleDeviceBus) Activate(name string) error {
 	return err
 }
 
-func (bus *simpleDeviceBus) Deactivate(name string) error {
+func (bus *DeviceBus) Deactivate(name string) error {
 	actuator, err := bus.getActuator(name)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (bus *simpleDeviceBus) Deactivate(name string) error {
 	return err
 }
 
-func (bus *simpleDeviceBus) getActuator(name string) (medulla.Actuator, error) {
+func (bus *DeviceBus) getActuator(name string) (medulla.Actuator, error) {
 	device := bus.devices[name]
 	actuator, _ := device.(medulla.Actuator)
 
@@ -58,7 +58,7 @@ func (bus *simpleDeviceBus) getActuator(name string) (medulla.Actuator, error) {
 	return actuator, nil
 }
 
-func (bus *simpleDeviceBus) getTrigger(name string) (medulla.Trigger, error) {
+func (bus *DeviceBus) getTrigger(name string) (medulla.Trigger, error) {
 	device := bus.devices[name]
 	trigger, _ := device.(medulla.Trigger)
 
@@ -69,7 +69,7 @@ func (bus *simpleDeviceBus) getTrigger(name string) (medulla.Trigger, error) {
 	return trigger, nil
 }
 
-func (bus *simpleDeviceBus) Halt() error {
+func (bus *DeviceBus) Halt() error {
 	bus.log.Printf("Halting all devices...")
 	for name, device := range bus.devices {
 		if err := device.Halt(); err != nil {
@@ -80,15 +80,15 @@ func (bus *simpleDeviceBus) Halt() error {
 	return nil
 }
 
-func (bus *simpleDeviceBus) logActivation(name string) {
+func (bus *DeviceBus) logActivation(name string) {
 	bus.log.Printf("Device '%s' is active.", name)
 }
 
-func (bus *simpleDeviceBus) logDeactivation(name string) {
+func (bus *DeviceBus) logDeactivation(name string) {
 	bus.log.Printf("Device '%s' is inactive.", name)
 }
 
-func (bus *simpleDeviceBus) RegisterDevice(device medulla.Device) error {
+func (bus *DeviceBus) RegisterDevice(device medulla.Device) error {
 	name := device.Name()
 	if existing := bus.devices[name]; existing != nil {
 		return fmt.Errorf("A device named '%s' has already been registered.", name)
@@ -103,7 +103,7 @@ func (bus *simpleDeviceBus) RegisterDevice(device medulla.Device) error {
 	return nil
 }
 
-func (bus *simpleDeviceBus) Subscribe(name string) (<-chan medulla.DeviceState, error) {
+func (bus *DeviceBus) Subscribe(name string) (<-chan medulla.DeviceState, error) {
 	trigger, err := bus.getTrigger(name)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (bus *simpleDeviceBus) Subscribe(name string) (<-chan medulla.DeviceState, 
 	return trigger.Subscribe()
 }
 
-func (bus *simpleDeviceBus) watchTrigger(trigger medulla.Trigger) {
+func (bus *DeviceBus) watchTrigger(trigger medulla.Trigger) {
 	name := trigger.Name()
 	states, err := trigger.Subscribe()
 

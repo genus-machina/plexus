@@ -16,14 +16,6 @@ type Device interface {
 	State() DeviceState
 }
 
-type DeviceBus interface {
-	Activate(name string) error
-	Deactivate(name string) error
-	Halt() error
-	RegisterDevice(device Device) error
-	Subscribe(name string) (<-chan DeviceState, error)
-}
-
 type DeviceState interface {
 	IsActive() bool
 	IsHalted() bool
