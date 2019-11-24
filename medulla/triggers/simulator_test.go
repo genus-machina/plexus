@@ -1,7 +1,6 @@
 package triggers
 
 import (
-	"strings"
 	"sync"
 	"testing"
 
@@ -10,91 +9,50 @@ import (
 
 func TestSimulatorName(t *testing.T) {
 	trigger := NewSimulator("test")
-	name := trigger.Name()
-
-	if name != "test" {
-		t.Errorf("expected name %s but got %s", "test", name)
-	}
+	assertName(t, trigger, "test")
 }
 
 func TestSimulatorHalt(t *testing.T) {
 	trigger := NewSimulator("test")
-	err := trigger.Halt()
-
-	if err != nil {
-		t.Errorf("halting error: %s", err.Error())
-	}
-
-	if !trigger.State().IsHalted() {
-		t.Error("trigger failed to halt")
-	}
+	assertHalt(t, trigger)
+	assertIsHalted(t, trigger)
 }
 
 func TestSimulatorHaltError(t *testing.T) {
 	trigger := NewSimulator("test")
-	trigger.Halt()
-	err := trigger.Halt()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertHalt(t, trigger)
+	assertError(t, trigger.Halt(), "halted")
 }
 
 func TestSimulatorActivate(t *testing.T) {
 	trigger := NewSimulator("test")
-	err := trigger.Activate()
-
-	if err != nil {
-		t.Errorf("activation failure: %s", err.Error())
-	}
-
-	if !trigger.State().IsActive() {
-		t.Error("trigger failed to activate")
-	}
+	assertActivate(t, trigger)
+	assertIsActive(t, trigger)
 }
 
 func TestSimulatorActivationError(t *testing.T) {
 	trigger := NewSimulator("test")
-	trigger.Halt()
-	err := trigger.Activate()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertHalt(t, trigger)
+	assertError(t, trigger.Activate(), "halted")
 }
 
 func TestSimulatorDeactivate(t *testing.T) {
 	trigger := NewSimulator("test")
-	trigger.Activate()
-	err := trigger.Deactivate()
-
-	if err != nil {
-		t.Errorf("deactivation failure: %s", err.Error())
-	}
-
-	if trigger.State().IsActive() {
-		t.Error("trigger failed to deactivate")
-	}
+	assertActivate(t, trigger)
+	assertDeactivate(t, trigger)
+	assertIsInactive(t, trigger)
 }
 
 func TestSimulatorDeactivationError(t *testing.T) {
 	trigger := NewSimulator("test")
-	trigger.Halt()
-	err := trigger.Deactivate()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertHalt(t, trigger)
+	assertError(t, trigger.Deactivate(), "halted")
 }
 
 func TestSimulatorSubscribe(t *testing.T) {
 	trigger := NewSimulator("test")
 	values := make([]medulla.DeviceState, 0)
-
-	changes, err := trigger.Subscribe()
-	if err != nil {
-		t.Errorf("failed to subscribe: %s", err.Error())
-	}
+	changes := assertSubscribe(t, trigger)
 
 	go func() {
 		trigger.Activate()
@@ -109,21 +67,13 @@ func TestSimulatorSubscribe(t *testing.T) {
 		values = append(values, state)
 	}
 
-	if count := len(values); count != 3 {
-		t.Errorf("expected %d values but found %d", 3, count)
+	expected := []medulla.DeviceState{
+		medulla.NewDeviceState(true, false),
+		medulla.NewDeviceState(false, false),
+		medulla.NewDeviceState(true, false),
 	}
 
-	if !values[0].IsActive() {
-		t.Error("expected value 1 to be active")
-	}
-
-	if values[1].IsActive() {
-		t.Error("expected value 2 to be inactive")
-	}
-
-	if !values[2].IsActive() {
-		t.Error("expected value 3 to be active")
-	}
+	assertStates(t, expected, values)
 }
 
 func TestSimulatorMultipleSubscriptions(t *testing.T) {
@@ -131,8 +81,8 @@ func TestSimulatorMultipleSubscriptions(t *testing.T) {
 	waitGroup.Add(2)
 
 	trigger := NewSimulator("test")
-	changes1, _ := trigger.Subscribe()
-	changes2, _ := trigger.Subscribe()
+	changes1 := assertSubscribe(t, trigger)
+	changes2 := assertSubscribe(t, trigger)
 	values1 := make([]medulla.DeviceState, 0)
 	values2 := make([]medulla.DeviceState, 0)
 
@@ -158,39 +108,21 @@ func TestSimulatorMultipleSubscriptions(t *testing.T) {
 
 	waitGroup.Wait()
 
-	if count := len(values1); count != 2 {
-		t.Errorf("expected %d values on channel 1 but found %d", 2, count)
+	expected := []medulla.DeviceState{
+		medulla.NewDeviceState(true, false),
+		medulla.NewDeviceState(false, false),
 	}
 
-	if !values1[0].IsActive() {
-		t.Error("expected value 1 on channel 1 to be active")
-	}
-
-	if values1[1].IsActive() {
-		t.Error("expected value 2 on channel 1 to be inactive")
-	}
-
-	if count := len(values2); count != 2 {
-		t.Errorf("expected %d values on channel 2 but found %d", 2, count)
-	}
-
-	if !values2[0].IsActive() {
-		t.Error("expected value 1 on channel 2 to be active")
-	}
-
-	if values2[1].IsActive() {
-		t.Error("expected value 2 on channel 2 to be inactive")
-	}
+	assertStates(t, expected, values1)
+	assertStates(t, expected, values2)
 }
 
 func TestSimulatorSubscribeFailure(t *testing.T) {
 	trigger := NewSimulator("test")
-	trigger.Halt()
+	assertHalt(t, trigger)
 	channel, err := trigger.Subscribe()
 
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertError(t, err, "halted")
 
 	if channel != nil {
 		t.Error("expected channel to be nil")

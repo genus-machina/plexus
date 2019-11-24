@@ -1,52 +1,31 @@
 package actuators
 
 import (
-	"strings"
 	"testing"
 )
 
 func TestSimulatorInitialization(t *testing.T) {
 	simulator := NewSimulator("test")
-
-	if simulator.State().IsActive() {
-		t.Error("indicator is active")
-	}
+	assertInactive(t, simulator)
 }
 
 func TestSimulatorActivate(t *testing.T) {
 	simulator := NewSimulator("test")
-	err := simulator.Activate()
-
-	if err != nil {
-		t.Errorf("activation error: %s", err.Error())
-	}
-
-	if !simulator.State().IsActive() {
-		t.Error("indicator is not active")
-	}
+	assertActivate(t, simulator)
+	assertActive(t, simulator)
 }
 
 func TestSimulatorDeactivate(t *testing.T) {
 	simulator := NewSimulator("test")
 	simulator.Activate()
-	err := simulator.Deactivate()
-
-	if err != nil {
-		t.Errorf("deactivation error: %s", err.Error())
-	}
-
-	if simulator.State().IsActive() {
-		t.Error("indicator is active")
-	}
+	assertDeactivate(t, simulator)
+	assertInactive(t, simulator)
 }
 
 func TestSimulatorName(t *testing.T) {
 	simulator := NewSimulator("test")
 	name := simulator.Name()
-
-	if name != "test" {
-		t.Errorf("expected %s but got %s", "test", name)
-	}
+	assertName(t, simulator, name)
 }
 
 func TestSimulatorHalt(t *testing.T) {
@@ -61,25 +40,12 @@ func TestSimulatorHalt(t *testing.T) {
 		t.Error("failed to halt")
 	}
 
-	err = simulator.Activate()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
-
-	err = simulator.Deactivate()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertError(t, simulator.Activate(), "halted")
+	assertError(t, simulator.Deactivate(), "halted")
 }
 
 func TestSimulatorHaltError(t *testing.T) {
 	simulator := NewSimulator("test")
 	simulator.Halt()
-	err := simulator.Halt()
-
-	if message := err.Error(); !strings.Contains(message, "halted") {
-		t.Errorf("unexpected error: %s", message)
-	}
+	assertError(t, simulator.Halt(), "halted")
 }

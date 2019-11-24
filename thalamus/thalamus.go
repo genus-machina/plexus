@@ -30,6 +30,8 @@ func execute(logger *log.Logger, command []string, state *store) error {
 		err = activate(logger, state, args)
 	case "deactivate":
 		err = deactivate(logger, state, args)
+	case "publish":
+		err = publish(logger, state, args)
 	case "load":
 		err = load(logger, state, args)
 	case "quit":

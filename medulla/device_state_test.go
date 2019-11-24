@@ -6,24 +6,16 @@ import (
 
 func TestDeviceStateIsActive(t *testing.T) {
 	state := NewDeviceState(false, false)
-	if state.IsActive() {
-		t.Error("state is active")
-	}
+	assertIsInactive(t, state)
 
 	state = NewDeviceState(true, false)
-	if !state.IsActive() {
-		t.Error("state is not active")
-	}
+	assertIsActive(t, state)
 }
 
 func TestDeviceStateIsHalted(t *testing.T) {
 	state := NewDeviceState(false, false)
-	if state.IsHalted() {
-		t.Error("state is halted")
-	}
+	assertIsNotHalted(t, state)
 
 	state = NewDeviceState(false, true)
-	if !state.IsHalted() {
-		t.Error("state is not halted")
-	}
+	assertIsHalted(t, state)
 }

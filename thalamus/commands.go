@@ -47,9 +47,35 @@ func load(logger *log.Logger, state *store, args []string) error {
 	return err
 }
 
+func publish(logger *log.Logger, state *store, args []string) error {
+	if l := len(args); l < 1 {
+		return errors.New("publish requires a topic.")
+	}
+
+	if l := len(args); l < 2 {
+		return errors.New("publish requires a message.")
+	}
+
+	if state.Devices == nil {
+		return errors.New("No devices have been loaded.")
+	}
+
+	if state.Devices.Synapse == nil {
+		return errors.New("A synapse has not been configured.")
+	}
+
+	topic := args[0]
+	message := []byte(args[1])
+	return state.Devices.Synapse.Publish(message, topic)
+}
+
 func quit(logger *log.Logger, state *store, args []string) error {
 	if state.Devices != nil {
 		state.Devices.DeviceBus.Halt()
+
+		if state.Devices.Synapse != nil {
+			state.Devices.Synapse.Close()
+		}
 	}
 
 	logger.Println("Goodbye!")

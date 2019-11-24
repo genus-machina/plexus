@@ -29,7 +29,7 @@ func (bus *DeviceBus) Activate(name string) error {
 
 	err = actuator.Activate()
 	if err == nil {
-		bus.logActivation(name)
+		bus.log.Printf("Device '%s' is active.", name)
 	}
 	return err
 }
@@ -42,7 +42,7 @@ func (bus *DeviceBus) Deactivate(name string) error {
 
 	err = actuator.Deactivate()
 	if err == nil {
-		bus.logDeactivation(name)
+		bus.log.Printf("Device '%s' is inactive.", name)
 	}
 	return err
 }
@@ -80,14 +80,6 @@ func (bus *DeviceBus) Halt() error {
 	return nil
 }
 
-func (bus *DeviceBus) logActivation(name string) {
-	bus.log.Printf("Device '%s' is active.", name)
-}
-
-func (bus *DeviceBus) logDeactivation(name string) {
-	bus.log.Printf("Device '%s' is inactive.", name)
-}
-
 func (bus *DeviceBus) RegisterDevice(device medulla.Device) error {
 	name := device.Name()
 	if existing := bus.devices[name]; existing != nil {
@@ -123,9 +115,9 @@ func (bus *DeviceBus) watchTrigger(trigger medulla.Trigger) {
 
 	for state := range states {
 		if state.IsActive() {
-			bus.logActivation(name)
+			bus.log.Printf("Device '%s' has activated.", name)
 		} else {
-			bus.logDeactivation(name)
+			bus.log.Printf("Device '%s' has deactivated.", name)
 		}
 	}
 }
