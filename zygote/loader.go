@@ -2,6 +2,7 @@ package zygote
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,8 @@ import (
 	"github.com/genus-machina/plexus/medulla/bus"
 	"github.com/genus-machina/plexus/medulla/triggers"
 	"github.com/genus-machina/plexus/synapse"
+
+	"periph.io/x/periph/conn/gpio/gpioreg"
 )
 
 type System struct {
@@ -73,6 +76,11 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 		var device medulla.Device
 
 		switch deviceConfig.Type {
+		case "led":
+			var err error
+			if device, err = buildLED(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build LED '%s': %s", deviceConfig.Name, err.Error())
+			}
 		case "simulator":
 			var err error
 			if device, err = buildSimulator(deviceConfig, synapse); err != nil {
@@ -86,6 +94,20 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 	}
 
 	return devices, nil
+}
+
+func buildLED(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device := actuators.NewLED(config.Name, gpioreg.ByName(config.Pin))
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindActuator(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
 }
 
 func buildSimulator(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
