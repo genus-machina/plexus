@@ -69,6 +69,24 @@ func bindTrigger(synapse synapse.Protocol, device medulla.Trigger, topic string)
 	}
 }
 
+func buildButton(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device, err := triggers.NewButton(config.Name, gpioreg.ByName(config.Pin))
+	if err != nil {
+		return nil, err
+	}
+
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
+}
+
 func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Device, error) {
 	devices := make([]medulla.Device, 0)
 
@@ -76,6 +94,11 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 		var device medulla.Device
 
 		switch deviceConfig.Type {
+		case "button":
+			var err error
+			if device, err = buildButton(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build button '%s': %s", deviceConfig.Name, err.Error())
+			}
 		case "led":
 			var err error
 			if device, err = buildLED(deviceConfig, synapse); err != nil {

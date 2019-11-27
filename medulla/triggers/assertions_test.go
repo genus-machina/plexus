@@ -5,11 +5,21 @@ import (
 	"testing"
 
 	"github.com/genus-machina/plexus/medulla"
+	"periph.io/x/periph/conn/gpio"
 )
 
 func assertActivate(t *testing.T, device medulla.Actuator) {
 	if err := device.Activate(); err != nil {
 		t.Errorf("activation error: %s", err.Error())
+	}
+}
+
+func assertButton(t *testing.T, name string, pin gpio.PinIO) *Button {
+	if button, err := NewButton(name, pin); err == nil {
+		return button
+	} else {
+		t.Errorf("failed to create button '%s': %s", name, err.Error())
+		return nil
 	}
 }
 
@@ -43,6 +53,12 @@ func assertIsHalted(t *testing.T, device medulla.Device) {
 	}
 }
 
+func assertIsNotHalted(t *testing.T, device medulla.Device) {
+	if device.State().IsHalted() {
+		t.Errorf("device '%s' is halted", device.Name())
+	}
+}
+
 func assertIsInactive(t *testing.T, device medulla.Device) {
 	if device.State().IsActive() {
 		t.Errorf("expected device '%s' to be inactive", device.Name())
@@ -52,6 +68,12 @@ func assertIsInactive(t *testing.T, device medulla.Device) {
 func assertName(t *testing.T, device medulla.Device, expected string) {
 	if name := device.Name(); name != expected {
 		t.Errorf("expected name '%s' but got '%s'", expected, name)
+	}
+}
+
+func assertPullUp(t *testing.T, pin gpio.PinIn) {
+	if pin.Pull() != gpio.PullUp {
+		t.Errorf("expected pin to be pulled up")
 	}
 }
 

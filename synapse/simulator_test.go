@@ -24,7 +24,7 @@ func TestSimulatorApplyUnknownMessage(t *testing.T) {
 func TestSimulatorApplyActivateMessage(t *testing.T) {
 	simulator := NewSimulator(logger)
 	actuator := actuators.NewSimulator("test")
-	message := SIMULATOR_ACTIVATE
+	message := SIMULATOR_ACTIVATED
 	assertApply(t, simulator, message, actuator)
 	assertActive(t, actuator)
 }
@@ -32,7 +32,7 @@ func TestSimulatorApplyActivateMessage(t *testing.T) {
 func TestSimulatorApplyDeactivateMessage(t *testing.T) {
 	simulator := NewSimulator(logger)
 	actuator := actuators.NewSimulator("test")
-	message := SIMULATOR_DEACTIVATE
+	message := SIMULATOR_DEACTIVATED
 	assertActivate(t, actuator)
 	assertApply(t, simulator, message, actuator)
 	assertInactive(t, actuator)

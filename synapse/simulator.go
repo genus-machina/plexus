@@ -8,9 +8,7 @@ import (
 )
 
 var (
-	SIMULATOR_ACTIVATE    = []byte("activate")
 	SIMULATOR_ACTIVATED   = []byte("activated")
-	SIMULATOR_DEACTIVATE  = []byte("deactivate")
 	SIMULATOR_DEACTIVATED = []byte("deactivated")
 )
 
@@ -27,14 +25,14 @@ func NewSimulator(logger *log.Logger) *Simulator {
 }
 
 func (simulator *Simulator) Apply(message Message, device medulla.Actuator) error {
-	if bytes.Equal(message, SIMULATOR_ACTIVATE) {
+	if bytes.Equal(message, SIMULATOR_ACTIVATED) {
 		if err := device.Activate(); err == nil {
 			simulator.logger.Printf("Activated device '%s'.", device.Name())
 			return nil
 		} else {
 			return err
 		}
-	} else if bytes.Equal(message, SIMULATOR_DEACTIVATE) {
+	} else if bytes.Equal(message, SIMULATOR_DEACTIVATED) {
 		if err := device.Deactivate(); err == nil {
 			simulator.logger.Printf("Deactivated device '%s'.", device.Name())
 			return nil
