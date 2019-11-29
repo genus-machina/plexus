@@ -4,16 +4,17 @@ import (
 	"periph.io/x/periph/conn/gpio"
 )
 
-type LED struct {
+type Lamp struct {
 	gpioActuator
 }
 
-func NewLED(name string, pin gpio.PinOut) *LED {
-	device := new(LED)
+func NewLamp(name string, pin gpio.PinOut) *Lamp {
+	device := new(Lamp)
+	device.inverted = true
 	device.name = name
 	device.pin = pin
 
-	device.pin.Out(gpio.Low)
+	device.pin.Out(gpio.High)
 	device.active = false
 	device.halted = false
 	return device

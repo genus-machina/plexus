@@ -129,6 +129,20 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 	return devices, nil
 }
 
+func buildLamp(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device := actuators.NewLamp(config.Name, gpioreg.ByName(config.Pin))
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindActuator(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
+}
+
 func buildLED(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
 	if config.Pin == "" {
 		return nil, errors.New("A GPIO pin is required.")
