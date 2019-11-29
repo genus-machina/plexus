@@ -126,3 +126,12 @@ func assertSubscribe(t *testing.T, device medulla.Trigger) <-chan medulla.Device
 	}
 	return channel
 }
+
+func assertWater(t *testing.T, name string, pin gpio.PinIO) *Water {
+	if water, err := NewWater(name, pin); err == nil {
+		return water
+	} else {
+		t.Errorf("failed to create water sensor '%s': %s", name, err.Error())
+		return nil
+	}
+}

@@ -114,6 +114,11 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 			if device, err = buildSimulator(deviceConfig, synapse); err != nil {
 				return nil, fmt.Errorf("Failed to build simulator '%s': %s", deviceConfig.Name, err.Error())
 			}
+		case "water":
+			var err error
+			if device, err = buildWater(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build water sensor '%s': %s", deviceConfig.Name, err.Error())
+			}
 		default:
 			return nil, fmt.Errorf("Invalid device type '%s'.", deviceConfig.Type)
 		}
@@ -232,6 +237,25 @@ func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 
 	return system, nil
 }
+
+func buildWater(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device, err := triggers.NewWater(config.Name, gpioreg.ByName(config.Pin))
+	if err != nil {
+		return nil, err
+	}
+
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
+}
+
 
 func LoadJSON(path string, logger *log.Logger) (*System, error) {
 	config, err := parseJSON(path)
