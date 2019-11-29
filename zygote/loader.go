@@ -138,6 +138,24 @@ func buildLED(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, e
 	return device, nil
 }
 
+func buildPhototransistor(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device, err := triggers.NewPhototransistor(config.Name, gpioreg.ByName(config.Pin))
+	if err != nil {
+		return nil, err
+	}
+
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
+}
+
 func buildPIR(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
 	if config.Pin == "" {
 		return nil, errors.New("A GPIO pin is required.")

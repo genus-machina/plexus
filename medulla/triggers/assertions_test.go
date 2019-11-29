@@ -71,6 +71,15 @@ func assertName(t *testing.T, device medulla.Device, expected string) {
 	}
 }
 
+func assertPhototransistor(t *testing.T, name string, pin gpio.PinIO) *Phototransistor {
+	if phototransistor, err := NewPhototransistor(name, pin); err == nil {
+		return phototransistor
+	} else {
+		t.Errorf("failed to create phototransistor '%s': %s", name, err.Error())
+		return nil
+	}
+}
+
 func assertPIR(t *testing.T, name string, pin gpio.PinIO) *PIR {
 	if pir, err := NewPIR(name, pin); err == nil {
 		return pir
