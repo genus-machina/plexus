@@ -104,6 +104,11 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 			if device, err = buildLED(deviceConfig, synapse); err != nil {
 				return nil, fmt.Errorf("Failed to build LED '%s': %s", deviceConfig.Name, err.Error())
 			}
+		case "pir":
+			var err error
+			if device, err = buildPIR(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build PIR '%s': %s", deviceConfig.Name, err.Error())
+			}
 		case "simulator":
 			var err error
 			if device, err = buildSimulator(deviceConfig, synapse); err != nil {
@@ -127,6 +132,24 @@ func buildLED(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, e
 	device := actuators.NewLED(config.Name, gpioreg.ByName(config.Pin))
 	if !(config.Topic == "" || synapse == nil) {
 		if err := bindActuator(synapse, device, config.Topic); err != nil {
+			return nil, err
+		}
+	}
+	return device, nil
+}
+
+func buildPIR(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
+	if config.Pin == "" {
+		return nil, errors.New("A GPIO pin is required.")
+	}
+
+	device, err := triggers.NewPIR(config.Name, gpioreg.ByName(config.Pin))
+	if err != nil {
+		return nil, err
+	}
+
+	if !(config.Topic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.Topic); err != nil {
 			return nil, err
 		}
 	}

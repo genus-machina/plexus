@@ -71,9 +71,24 @@ func assertName(t *testing.T, device medulla.Device, expected string) {
 	}
 }
 
+func assertPIR(t *testing.T, name string, pin gpio.PinIO) *PIR {
+	if pir, err := NewPIR(name, pin); err == nil {
+		return pir
+	} else {
+		t.Errorf("failed to create PIR '%s': %s", name, err.Error())
+		return nil
+	}
+}
+
+func assertPullDown(t *testing.T, pin gpio.PinIn) {
+	if pin.Pull() != gpio.PullDown {
+		t.Error("expected pin to be pulled down")
+	}
+}
+
 func assertPullUp(t *testing.T, pin gpio.PinIn) {
 	if pin.Pull() != gpio.PullUp {
-		t.Errorf("expected pin to be pulled up")
+		t.Error("expected pin to be pulled up")
 	}
 }
 
