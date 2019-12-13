@@ -1,2 +1,4 @@
+*.png
 *.swp
+!/amygdala/dialog-warning-symbolic.png
 /thalamus/thalamus

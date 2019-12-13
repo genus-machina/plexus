@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/zygote"
 )
 
@@ -20,6 +21,18 @@ func activate(logger *log.Logger, state *store, args []string) error {
 	return state.Devices.DeviceBus.Activate(args[0])
 }
 
+func clear(logger *log.Logger, state *store, args []string) error {
+	if state.Devices == nil {
+		return errors.New("No devices have been loaded.")
+	}
+
+	if state.Devices.Screen == nil {
+		return errors.New("No screen has been configured.")
+	}
+
+	return state.Devices.Screen.Clear()
+}
+
 func deactivate(logger *log.Logger, state *store, args []string) error {
 	if l := len(args); l < 1 {
 		return errors.New("deactivate requires a device name.")
@@ -30,6 +43,28 @@ func deactivate(logger *log.Logger, state *store, args []string) error {
 	}
 
 	return state.Devices.DeviceBus.Deactivate(args[0])
+}
+
+func display(logger *log.Logger, state *store, args []string) error {
+	if l := len(args); l < 1 {
+		return errors.New("display requires a file path.")
+	}
+
+	if state.Devices == nil {
+		return errors.New("No devices have been loaded.")
+	}
+
+	if state.Devices.Screen == nil {
+		return errors.New("No screen has been configured.")
+	}
+
+	var err error
+	var png amygdala.Widget
+	if png, err = amygdala.NewPNG(args[0]); err == nil {
+		state.Devices.Screen.SetContent(png)
+		err = state.Devices.Screen.Render()
+	}
+	return err
 }
 
 func load(logger *log.Logger, state *store, args []string) error {

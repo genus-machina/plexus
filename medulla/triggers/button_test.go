@@ -45,7 +45,7 @@ func TestButtonState(t *testing.T) {
 
 	results = append(results, <-states)
 	assertIsActive(t, button)
-	<-time.After(100*time.Millisecond)
+	<-time.After(100 * time.Millisecond)
 
 	go func() {
 		pin.EdgesChan <- gpio.High
@@ -71,4 +71,3 @@ func TestButtonSubscribeError(t *testing.T) {
 	_, err := button.Subscribe()
 	assertError(t, err, "halted")
 }
-

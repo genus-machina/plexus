@@ -14,5 +14,6 @@ type synapseConfig struct {
 
 type systemConfig struct {
 	Devices []*deviceConfig `json:"devices"`
+	Screen  bool            `json:"screen"`
 	Synapse *synapseConfig  `json:"synapse"`
 }

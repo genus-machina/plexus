@@ -28,8 +28,12 @@ func execute(logger *log.Logger, command []string, state *store) error {
 	switch name {
 	case "activate":
 		err = activate(logger, state, args)
+	case "clear":
+		err = clear(logger, state, args)
 	case "deactivate":
 		err = deactivate(logger, state, args)
+	case "display":
+		err = display(logger, state, args)
 	case "publish":
 		err = publish(logger, state, args)
 	case "load":

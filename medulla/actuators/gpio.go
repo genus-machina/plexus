@@ -6,11 +6,11 @@ import (
 )
 
 type gpioActuator struct {
-	active bool
-	halted bool
+	active   bool
+	halted   bool
 	inverted bool
-	name   string
-	pin    gpio.PinOut
+	name     string
+	pin      gpio.PinOut
 }
 
 func (device *gpioActuator) Activate() error {

@@ -13,8 +13,8 @@ type Button struct {
 
 func NewButton(name string, pin gpio.PinIO) (*Button, error) {
 	device := new(Button)
-	device.debouncePeriod = 200*time.Millisecond
-	device.denoisePeriod = 10*time.Millisecond
+	device.debouncePeriod = 200 * time.Millisecond
+	device.denoisePeriod = 10 * time.Millisecond
 	device.inverted = true
 	device.name = name
 	device.pin = pin

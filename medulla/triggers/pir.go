@@ -1,8 +1,8 @@
 package triggers
 
 import (
-	"periph.io/x/periph/conn/gpio"
 	"github.com/genus-machina/plexus/medulla"
+	"periph.io/x/periph/conn/gpio"
 )
 
 type PIR struct {

@@ -33,7 +33,7 @@ func TestWaterState(t *testing.T) {
 	pin.EdgesChan = make(chan gpio.Level)
 	device := assertWater(t, name, pin)
 	// override denoise to speed up tests...
-	device.denoisePeriod = 100*time.Millisecond
+	device.denoisePeriod = 100 * time.Millisecond
 	states := assertSubscribe(t, device)
 	results := make([]medulla.DeviceState, 0)
 

@@ -9,18 +9,18 @@ import (
 )
 
 type gpioTrigger struct {
-	active bool
+	active         bool
 	debouncePeriod time.Duration
-	denoisePeriod time.Duration
-	halted bool
-	inverted bool
-	lastTime time.Time
-	level gpio.Level
-	mutex sync.Mutex
-	name string
-	pin gpio.PinIn
-	subscriptions []chan medulla.DeviceState
-	timer *time.Timer
+	denoisePeriod  time.Duration
+	halted         bool
+	inverted       bool
+	lastTime       time.Time
+	level          gpio.Level
+	mutex          sync.Mutex
+	name           string
+	pin            gpio.PinIn
+	subscriptions  []chan medulla.DeviceState
+	timer          *time.Timer
 }
 
 func (device *gpioTrigger) Halt() error {

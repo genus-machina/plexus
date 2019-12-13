@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/hippocampus"
 	"github.com/genus-machina/plexus/medulla"
 	"github.com/genus-machina/plexus/medulla/actuators"
@@ -15,10 +16,13 @@ import (
 	"github.com/genus-machina/plexus/synapse"
 
 	"periph.io/x/periph/conn/gpio/gpioreg"
+	"periph.io/x/periph/conn/i2c/i2creg"
+	"periph.io/x/periph/devices/ssd1306"
 )
 
 type System struct {
 	DeviceBus *bus.DeviceBus
+	Screen    *amygdala.Screen
 	Synapse   synapse.Protocol
 }
 
@@ -193,6 +197,19 @@ func buildPIR(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, e
 	return device, nil
 }
 
+func buildScreen() (*amygdala.Screen, error) {
+	i2cBus, err := i2creg.Open("")
+	if err != nil {
+		return nil, err
+	}
+
+	if device, err := ssd1306.NewI2C(i2cBus, &ssd1306.DefaultOpts); err == nil {
+		return amygdala.NewScreen(device), nil
+	} else {
+		return nil, err
+	}
+}
+
 func buildSimulator(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
 	switch config.Driver {
 	case "actuator":
@@ -230,10 +247,12 @@ func buildSynapse(config *synapseConfig, logger *log.Logger) (synapse.Protocol, 
 func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 	system := new(System)
 
-	if synapse, err := buildSynapse(config.Synapse, logger); err == nil {
-		system.Synapse = synapse
-	} else {
-		return nil, err
+	if config.Synapse != nil {
+		if synapse, err := buildSynapse(config.Synapse, logger); err == nil {
+			system.Synapse = synapse
+		} else {
+			return nil, err
+		}
 	}
 
 	system.DeviceBus = bus.New(hippocampus.ChildLogger(logger, "device bus"))
@@ -246,6 +265,14 @@ func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 	for _, device := range devices {
 		if err := system.DeviceBus.RegisterDevice(device); err != nil {
 			return system, fmt.Errorf("Failed to register device '%s': %s", device.Name(), err.Error())
+		}
+	}
+
+	if config.Screen {
+		if screen, err := buildScreen(); err == nil {
+			system.Screen = screen
+		} else {
+			return nil, err
 		}
 	}
 
@@ -269,7 +296,6 @@ func buildWater(config *deviceConfig, synapse synapse.Protocol) (medulla.Device,
 	}
 	return device, nil
 }
-
 
 func LoadJSON(path string, logger *log.Logger) (*System, error) {
 	config, err := parseJSON(path)
