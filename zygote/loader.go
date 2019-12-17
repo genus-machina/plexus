@@ -9,6 +9,7 @@ import (
 
 	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/hippocampus"
+	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla"
 	"github.com/genus-machina/plexus/medulla/actuators"
 	"github.com/genus-machina/plexus/medulla/bus"
@@ -17,41 +18,38 @@ import (
 
 	"periph.io/x/periph/conn/gpio/gpioreg"
 	"periph.io/x/periph/conn/i2c/i2creg"
+	"periph.io/x/periph/devices/bmxx80"
 	"periph.io/x/periph/devices/ssd1306"
 )
 
 type System struct {
-	DeviceBus *bus.DeviceBus
-	Screen    *amygdala.Screen
-	Synapse   synapse.Protocol
+	EnvironmentalSensor hypothalamus.Sensor
+	DeviceBus           *bus.DeviceBus
+	Screen              *amygdala.Screen
+	Synapse             synapse.Protocol
 }
 
-func parseJSON(path string) (*systemConfig, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var config systemConfig
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&config)
-	if err != nil {
-		return nil, err
+func (system *System) Halt() {
+	if system == nil {
+		return
 	}
 
-	return &config, nil
+	if system.DeviceBus != nil {
+		system.DeviceBus.Halt()
+	}
+
+	if system.EnvironmentalSensor != nil {
+		system.EnvironmentalSensor.Halt()
+	}
+
+	if system.Synapse != nil {
+		system.Synapse.Close()
+	}
 }
 
 func applyMessages(protocol synapse.Protocol, messages <-chan synapse.Message, device medulla.Actuator) {
 	for message := range messages {
 		protocol.Apply(message, device)
-	}
-}
-
-func publishStates(protocol synapse.Protocol, states <-chan medulla.DeviceState, topic string) {
-	for state := range states {
-		protocol.PublishState(state, topic)
 	}
 }
 
@@ -131,6 +129,25 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 	}
 
 	return devices, nil
+}
+
+func buildEnvironmentalSensor() (hypothalamus.Sensor, error) {
+	i2cBus, err := i2creg.Open("")
+	if err != nil {
+		return nil, err
+	}
+
+	options := &bmxx80.Opts{
+		Temperature: bmxx80.O16x,
+		Pressure:    bmxx80.O16x,
+		Humidity:    bmxx80.O16x,
+	}
+
+	if device, err := bmxx80.NewI2C(i2cBus, 0x76, options); err == nil {
+		return hypothalamus.NewBME280(device), nil
+	} else {
+		return nil, err
+	}
 }
 
 func buildLamp(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
@@ -276,6 +293,14 @@ func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 		}
 	}
 
+	if config.EnvironmentalSensor {
+		if sensor, err := buildEnvironmentalSensor(); err == nil {
+			system.EnvironmentalSensor = sensor
+		} else {
+			return nil, err
+		}
+	}
+
 	return system, nil
 }
 
@@ -303,4 +328,27 @@ func LoadJSON(path string, logger *log.Logger) (*System, error) {
 		return nil, err
 	}
 	return buildSystem(config, logger)
+}
+
+func parseJSON(path string) (*systemConfig, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var config systemConfig
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
+func publishStates(protocol synapse.Protocol, states <-chan medulla.DeviceState, topic string) {
+	for state := range states {
+		protocol.PublishState(state, topic)
+	}
 }

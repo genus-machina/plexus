@@ -105,14 +105,7 @@ func publish(logger *log.Logger, state *store, args []string) error {
 }
 
 func quit(logger *log.Logger, state *store, args []string) error {
-	if state.Devices != nil {
-		state.Devices.DeviceBus.Halt()
-
-		if state.Devices.Synapse != nil {
-			state.Devices.Synapse.Close()
-		}
-	}
-
+	state.Devices.Halt()
 	logger.Println("Goodbye!")
 	os.Exit(0)
 	return nil
