@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla"
 )
 
@@ -52,9 +53,33 @@ func assertMessages(t *testing.T, expected []Message, actual []Message) {
 	}
 }
 
+func assertParseEnvironmental(t *testing.T, simulator *Simulator, message Message) *hypothalamus.Environmental {
+	if value, err := simulator.ParseEnvironmental(message); err == nil {
+		return value
+	} else {
+		t.Errorf("error parsing environmental: %s", err.Error())
+	}
+	return nil
+}
+
+func assertParseState(t *testing.T, simulator *Simulator, message Message) medulla.DeviceState {
+	if value, err := simulator.ParseState(message); err == nil {
+		return value
+	} else {
+		t.Errorf("error parsing state: %s", err.Error())
+	}
+	return nil
+}
+
 func assertPublish(t *testing.T, simulator *Simulator, message Message, topic string) {
 	if err := simulator.Publish(message, topic); err != nil {
 		t.Errorf("publish error: %s", err.Error())
+	}
+}
+
+func assertPublishEnvironmental(t *testing.T, simulator *Simulator, environmental *hypothalamus.Environmental, topic string) {
+	if err := simulator.PublishEnvironmental(environmental, topic); err != nil {
+		t.Errorf("publish environmental error: %s", err.Error())
 	}
 }
 

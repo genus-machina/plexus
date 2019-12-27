@@ -9,7 +9,12 @@ type deviceConfig struct {
 }
 
 type synapseConfig struct {
-	Type string `json:"type"`
+	Broker   string `json:"broker,omitempty"`
+	CA       string `json:"ca,omitempty"`
+	Cert     string `json:"cert,omitempty"`
+	ClientId string `json:"clientId,omitempty"`
+	Key      string `json:"key,omitempty"`
+	Type     string `json:"type"`
 }
 
 type systemConfig struct {

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla/actuators"
 )
 
@@ -175,4 +176,51 @@ func TestSimulatorPublishState(t *testing.T) {
 		SIMULATOR_DEACTIVATED,
 	}
 	assertMessages(t, expected, messages)
+}
+
+func TestSimulatorEnvironmental(t *testing.T) {
+	simulator := NewSimulator(logger)
+	topic := "environment"
+	channel := assertSubscribe(t, simulator, topic)
+	value := new(hypothalamus.Environmental)
+	value.Humidity = 1
+	value.Pressure = 2
+	value.Temperature = 3
+
+	go func() {
+		assertPublishEnvironmental(t, simulator, value, topic)
+		assertClose(t, simulator)
+	}()
+
+	received := assertParseEnvironmental(t, simulator, <-channel)
+
+	if received.Humidity != value.Humidity {
+		t.Errorf("expected humidity %d but got %d", value.Humidity, received.Humidity)
+	}
+	if received.Pressure != value.Pressure {
+		t.Errorf("expected pressure %d but got %d", value.Pressure, received.Pressure)
+	}
+	if received.Temperature != value.Temperature {
+		t.Errorf("expected temperature %d but got %d", value.Temperature, received.Temperature)
+	}
+}
+
+func TestSimulatorDeviceState(t *testing.T) {
+	simulator := NewSimulator(logger)
+	topic := "state"
+	channel := assertSubscribe(t, simulator, topic)
+
+	go func() {
+		assertPublishState(t, simulator, true, false, topic)
+		assertClose(t, simulator)
+	}()
+
+	received := assertParseState(t, simulator, <-channel)
+
+	if !received.IsActive() {
+		t.Error("expected device state to be active")
+	}
+	if received.IsHalted() {
+		t.Error("expected device state not to be halted")
+	}
 }

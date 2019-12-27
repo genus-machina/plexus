@@ -254,6 +254,15 @@ func buildSynapse(config *synapseConfig, logger *log.Logger) (synapse.Protocol, 
 	synapticLogger := hippocampus.ChildLogger(logger, "synapse")
 
 	switch config.Type {
+	case "mqtt":
+		options := &synapse.MQTTOptions{
+			Broker:   config.Broker,
+			CaFile:   config.CA,
+			CertFile: config.Cert,
+			ClientId: config.ClientId,
+			KeyFile:  config.Key,
+		}
+		return synapse.NewMQTT(synapticLogger, options)
 	case "simulator":
 		return synapse.NewSimulator(synapticLogger), nil
 	default:
