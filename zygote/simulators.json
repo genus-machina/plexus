@@ -1,0 +1,19 @@
+{
+	"devices": [
+		{
+			"name": "actuator",
+			"type": "simulator",
+			"driver": "actuator",
+			"topic": "actuator"
+		},
+		{
+			"name": "trigger",
+			"type": "simulator",
+			"driver": "trigger",
+			"topic": "trigger"
+		}
+	],
+	"synapse": {
+		"type": "simulator"
+	}
+}
