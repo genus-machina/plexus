@@ -101,10 +101,20 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 			if device, err = buildButton(deviceConfig, synapse); err != nil {
 				return nil, fmt.Errorf("Failed to build button '%s': %s", deviceConfig.Name, err.Error())
 			}
+		case "lamp":
+			var err error
+			if device, err = buildLamp(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build lamp '%s': %s", deviceConfig.Name, err.Error())
+			}
 		case "led":
 			var err error
 			if device, err = buildLED(deviceConfig, synapse); err != nil {
 				return nil, fmt.Errorf("Failed to build LED '%s': %s", deviceConfig.Name, err.Error())
+			}
+		case "phototransistor":
+			var err error
+			if device, err = buildPhototransistor(deviceConfig, synapse); err != nil {
+				return nil, fmt.Errorf("Failed to build phototransistor '%s': %s", deviceConfig.Name, err.Error())
 			}
 		case "pir":
 			var err error
