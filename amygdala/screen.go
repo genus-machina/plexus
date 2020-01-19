@@ -18,6 +18,10 @@ func NewScreen(display display.Drawer) *Screen {
 	return screen
 }
 
+func (screen *Screen) Bounds() image.Rectangle {
+	return screen.display.Bounds()
+}
+
 func (screen *Screen) Clear() error {
 	buffer := image.NewUniform(color.Black)
 	return screen.display.Draw(screen.display.Bounds(), buffer, image.Pt(0, 0))

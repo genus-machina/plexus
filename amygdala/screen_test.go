@@ -14,6 +14,11 @@ func createTestScreen() (*displaytest.Drawer, *Screen) {
 	return display, screen
 }
 
+func TestScreenBounds(t *testing.T) {
+	display, screen := createTestScreen()
+	assertRectangle(t, display.Bounds(), screen.Bounds())
+}
+
 func TestScreenRenderTextBox(t *testing.T) {
 	display, screen := createTestScreen()
 	face := NewFontFace(8)

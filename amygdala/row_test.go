@@ -129,3 +129,12 @@ func TestRowFixedColumns(t *testing.T) {
 	assertRectangle(t, image.Rect(8, 0, 19, 30), two.Bounds())
 	assertRectangle(t, image.Rect(19, 0, 30, 30), three.Bounds())
 }
+
+func TestRowFixedColumn(t *testing.T) {
+	row := NewRow()
+	one := NewTestWidget(8, 8)
+	row.AppendColumn(one, &ColumnOptions{Fixed: true})
+	row.SetBounds(image.Rect(0, 0, 30, 30))
+	assertRectangle(t, image.Rect(0, 0, 30, 30), row.Bounds())
+	assertRectangle(t, image.Rect(0, 0, 8, 30), one.Bounds())
+}

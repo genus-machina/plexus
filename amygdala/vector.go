@@ -59,8 +59,13 @@ func (v *vector) scale(bound bounder, measure measurer, translate translator) {
 	}
 
 	unallocated := measure(v.bounds) - fixedValue
-	value := unallocated / dynamicCount
-	padded := unallocated % dynamicCount
+	value := unallocated
+	padded := 0
+
+	if dynamicCount > 0 {
+		value = unallocated / dynamicCount
+		padded = unallocated % dynamicCount
+	}
 
 	for i := range values {
 		if v.options[i].IsValid() && v.options[i].IsFixed() {
