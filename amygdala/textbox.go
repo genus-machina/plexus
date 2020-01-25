@@ -38,7 +38,7 @@ func (widget *TextBox) Render(canvas draw.Image) {
 	drawer.Dot = pointToFixed(widget.bounds.Min.Sub(widget.textBounds.Min))
 	drawer.Dst = buffer
 	drawer.Face = widget.face
-	drawer.Src = image.NewUniform(color.Black)
+	drawer.Src = image.NewUniform(color.White)
 	drawer.DrawString(widget.text)
 
 	draw.Draw(canvas, widget.bounds, drawer.Dst, widget.bounds.Min, draw.Src)
