@@ -53,6 +53,7 @@ func TestDeviceBusDeactivationError(t *testing.T) {
 	bus := New(logger)
 	indicator := actuators.NewSimulator("test indicator")
 	assertRegister(t, bus, indicator)
+	bus.Activate("test indicator")
 	assertHaltDevice(t, indicator)
 	assertError(t, bus.Deactivate("test indicator"), "halted")
 }

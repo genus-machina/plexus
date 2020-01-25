@@ -27,10 +27,13 @@ func (bus *DeviceBus) Activate(name string) error {
 		return err
 	}
 
-	err = actuator.Activate()
-	if err == nil {
-		bus.log.Printf("Device '%s' is active.", name)
+	if state := actuator.State(); !state.IsActive() {
+		err = actuator.Activate()
+		if err == nil {
+			bus.log.Printf("Device '%s' is active.", name)
+		}
 	}
+
 	return err
 }
 
@@ -40,10 +43,13 @@ func (bus *DeviceBus) Deactivate(name string) error {
 		return err
 	}
 
-	err = actuator.Deactivate()
-	if err == nil {
-		bus.log.Printf("Device '%s' is inactive.", name)
+	if state := actuator.State(); state.IsActive() {
+		err = actuator.Deactivate()
+		if err == nil {
+			bus.log.Printf("Device '%s' is inactive.", name)
+		}
 	}
+
 	return err
 }
 
