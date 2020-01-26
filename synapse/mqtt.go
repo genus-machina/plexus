@@ -28,6 +28,17 @@ type MQTTOptions struct {
 	KeyFile  string
 }
 
+func getStatusTopic(clientId string) string {
+	return fmt.Sprintf("/devices/%s/status", clientId)
+}
+
+func publishBirthMessage(client paho.Client) {
+	reader := client.OptionsReader()
+	options := &reader
+	statusTopic := getStatusTopic(options.ClientID())
+	client.Publish(statusTopic, 1, true, "{\"status\": \"online\"}")
+}
+
 func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	caContents, err := ioutil.ReadFile(options.CaFile)
 	if err != nil {
@@ -42,7 +53,7 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 		return nil, err
 	}
 
-	statusTopic := fmt.Sprintf("/devices/%s/status", options.ClientId)
+	statusTopic := getStatusTopic(options.ClientId)
 
 	tlsConfig := new(tls.Config)
 	tlsConfig.Certificates = []tls.Certificate{keyPair}
@@ -54,6 +65,7 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	clientOptions.SetCleanSession(true)
 	clientOptions.SetClientID(options.ClientId)
 	clientOptions.SetKeepAlive(time.Minute)
+	clientOptions.SetOnConnectHandler(publishBirthMessage)
 	clientOptions.SetTLSConfig(tlsConfig)
 	clientOptions.SetWill(statusTopic, "{\"status\": \"offline\"}", 1, true)
 
@@ -68,7 +80,6 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	}
 
 	synapse.logger = logger
-	synapse.client.Publish(statusTopic, 1, true, "{\"status\": \"online\"}")
 	return synapse, nil
 }
 
