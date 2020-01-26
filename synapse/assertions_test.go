@@ -53,7 +53,7 @@ func assertMessages(t *testing.T, expected []Message, actual []Message) {
 	}
 }
 
-func assertParseEnvironmental(t *testing.T, simulator *Simulator, message Message) *hypothalamus.Environmental {
+func assertParseEnvironmental(t *testing.T, simulator *Simulator, message Message) hypothalamus.Environmental {
 	if value, err := simulator.ParseEnvironmental(message); err == nil {
 		return value
 	} else {
@@ -77,7 +77,7 @@ func assertPublish(t *testing.T, simulator *Simulator, message Message, topic st
 	}
 }
 
-func assertPublishEnvironmental(t *testing.T, simulator *Simulator, environmental *hypothalamus.Environmental, topic string) {
+func assertPublishEnvironmental(t *testing.T, simulator *Simulator, environmental hypothalamus.Environmental, topic string) {
 	if err := simulator.PublishEnvironmental(environmental, topic); err != nil {
 		t.Errorf("publish environmental error: %s", err.Error())
 	}

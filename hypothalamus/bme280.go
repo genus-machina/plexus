@@ -17,11 +17,11 @@ func NewBME280(device *bmxx80.Dev) *BME280 {
 	return bme
 }
 
-func (device *BME280) convert(values <-chan physic.Env, measurements chan<- *Environmental) {
+func (device *BME280) convert(values <-chan physic.Env, measurements chan<- Environmental) {
 	defer close(measurements)
 
 	for value := range values {
-		measurement := Environmental(value)
+		measurement := PhysicEnv(value)
 		measurements <- &measurement
 	}
 }
@@ -30,9 +30,9 @@ func (device *BME280) Halt() error {
 	return device.device.Halt()
 }
 
-func (device *BME280) SenseContinuous(interval time.Duration) (<-chan *Environmental, error) {
+func (device *BME280) SenseContinuous(interval time.Duration) (<-chan Environmental, error) {
 	if values, err := device.device.SenseContinuous(interval); err == nil {
-		measurements := make(chan *Environmental, 0)
+		measurements := make(chan Environmental, 0)
 		go device.convert(values, measurements)
 		return measurements, nil
 	} else {

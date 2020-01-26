@@ -182,7 +182,7 @@ func TestSimulatorEnvironmental(t *testing.T) {
 	simulator := NewSimulator(logger)
 	topic := "environment"
 	channel := assertSubscribe(t, simulator, topic)
-	value := new(hypothalamus.Environmental)
+	value := new(hypothalamus.PhysicEnv)
 	value.Humidity = 1
 	value.Pressure = 2
 	value.Temperature = 3
@@ -194,14 +194,14 @@ func TestSimulatorEnvironmental(t *testing.T) {
 
 	received := assertParseEnvironmental(t, simulator, <-channel)
 
-	if received.Humidity != value.Humidity {
-		t.Errorf("expected humidity %d but got %d", value.Humidity, received.Humidity)
+	if received.RelativeHumidity() != value.RelativeHumidity() {
+		t.Errorf("expected humidity %f but got %f", value.RelativeHumidity(), received.RelativeHumidity())
 	}
-	if received.Pressure != value.Pressure {
-		t.Errorf("expected pressure %d but got %d", value.Pressure, received.Pressure)
+	if received.MmHg() != value.MmHg() {
+		t.Errorf("expected pressure %f but got %f", value.MmHg(), received.MmHg())
 	}
-	if received.Temperature != value.Temperature {
-		t.Errorf("expected temperature %d but got %d", value.Temperature, received.Temperature)
+	if received.Fahrenheit() != value.Fahrenheit() {
+		t.Errorf("expected temperature %f but got %f", value.Fahrenheit(), received.Fahrenheit())
 	}
 }
 

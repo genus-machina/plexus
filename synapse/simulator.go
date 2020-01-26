@@ -64,9 +64,9 @@ func (simulator *Simulator) getSubscriptions(topic string) []chan Message {
 	}
 }
 
-func (simulator *Simulator) ParseEnvironmental(message Message) (*hypothalamus.Environmental, error) {
+func (simulator *Simulator) ParseEnvironmental(message Message) (hypothalamus.Environmental, error) {
 	buffer := bytes.NewBuffer([]byte(message))
-	value := new(hypothalamus.Environmental)
+	value := new(hypothalamus.PhysicEnv)
 
 	if err := binary.Read(buffer, binary.BigEndian, value); err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (simulator *Simulator) Publish(message Message, topic string) error {
 	return nil
 }
 
-func (simulator *Simulator) PublishEnvironmental(environmental *hypothalamus.Environmental, topic string) error {
+func (simulator *Simulator) PublishEnvironmental(environmental hypothalamus.Environmental, topic string) error {
 	buffer := new(bytes.Buffer)
 	if err := binary.Write(buffer, binary.BigEndian, environmental); err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 )
 
 func TestEnvironmentalFahrenheit(t *testing.T) {
-	measurement := new(Environmental)
+	measurement := new(PhysicEnv)
 	temperature := 98.6
 	measurement.Temperature = physic.Temperature(temperature*float64(physic.Fahrenheit) + float64(physic.ZeroFahrenheit))
 
@@ -17,7 +17,7 @@ func TestEnvironmentalFahrenheit(t *testing.T) {
 }
 
 func TestEnvironmentalMmHg(t *testing.T) {
-	measurement := new(Environmental)
+	measurement := new(PhysicEnv)
 	pressure := 32.4
 	measurement.Pressure = physic.Pressure(pressure * float64(physic.Pascal) * 3386.38816)
 
@@ -27,7 +27,7 @@ func TestEnvironmentalMmHg(t *testing.T) {
 }
 
 func TestEnvironmentalRelativeHumidity(t *testing.T) {
-	measurement := new(Environmental)
+	measurement := new(PhysicEnv)
 	humidity := 12.34
 	measurement.Humidity = physic.RelativeHumidity(humidity * float64(physic.PercentRH))
 
