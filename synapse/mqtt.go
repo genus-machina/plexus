@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -41,6 +42,8 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 		return nil, err
 	}
 
+	statusTopic := fmt.Sprintf("/devices/%s/status", options.ClientId)
+
 	tlsConfig := new(tls.Config)
 	tlsConfig.Certificates = []tls.Certificate{keyPair}
 	tlsConfig.RootCAs = caPool
@@ -52,6 +55,7 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	clientOptions.SetClientID(options.ClientId)
 	clientOptions.SetKeepAlive(time.Minute)
 	clientOptions.SetTLSConfig(tlsConfig)
+	clientOptions.SetWill(statusTopic, "{\"status\": \"offline\"}", 1, true)
 
 	synapse := new(MQTT)
 	synapse.client = paho.NewClient(clientOptions)
@@ -64,6 +68,7 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	}
 
 	synapse.logger = logger
+	synapse.client.Publish(statusTopic, 1, true, "{\"status\": \"online\"}")
 	return synapse, nil
 }
 

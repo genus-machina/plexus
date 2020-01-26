@@ -50,3 +50,7 @@ func (json *jsonEnvironmental) MmHg() float64 {
 func (json *jsonEnvironmental) RelativeHumidity() float64 {
 	return json.Humidity
 }
+
+type jsonStatus struct {
+	Status string `json:"status"`
+}
