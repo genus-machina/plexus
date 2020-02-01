@@ -4,49 +4,49 @@
 			"name": "north-lamp",
 			"type": "simulator",
 			"driver": "trigger",
-			"topic": "/devices/borealis/lamps/north"
+			"statusTopic": "/devices/borealis/lamps/north"
 		},
 		{
 			"name": "south-lamp",
 			"type": "simulator",
 			"driver": "trigger",
-			"topic": "/devices/borealis/lamps/south"
+			"statusTopic": "/devices/borealis/lamps/south"
 		},
 		{
 			"name": "north-photo",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "/devices/borealis/phototransistors/north"
+			"commandTopic": "/devices/borealis/phototransistors/north"
 		},
 		{
 			"name": "south-photo",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "/devices/borealis/phototransistors/south"
+			"commandTopic": "/devices/borealis/phototransistors/south"
 		},
 		{
 			"name": "north-pir",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "/devices/borealis/pirs/north"
+			"commandTopic": "/devices/borealis/pirs/north"
 		},
 		{
 			"name": "south-pir",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "/devices/borealis/pirs/south"
+			"commandTopic": "/devices/borealis/pirs/south"
 		},
 		{
 			"name": "test-actuator",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "/devices/test/actuator"
+			"commandTopic": "/devices/test/actuator"
 		},
 		{
 			"name": "test-trigger",
 			"type": "simulator",
 			"driver": "trigger",
-			"topic": "/devices/test/trigger"
+			"statusTopic": "/devices/test/trigger"
 		}
 	],
 	"synapse": {

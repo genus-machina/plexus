@@ -28,6 +28,16 @@ type MQTTOptions struct {
 	KeyFile  string
 }
 
+const (
+	MQTT_QOS_AT_MOST_ONCE = iota
+	MQTT_QOS_AT_LEAST_ONCE
+	MQTT_QOS_EXACTLY_ONCE
+)
+
+const (
+	defaultQos = MQTT_QOS_AT_MOST_ONCE
+)
+
 func getStatusTopic(clientId string) string {
 	return fmt.Sprintf("/devices/%s/status", clientId)
 }
@@ -36,7 +46,7 @@ func publishBirthMessage(client paho.Client) {
 	reader := client.OptionsReader()
 	options := &reader
 	statusTopic := getStatusTopic(options.ClientID())
-	client.Publish(statusTopic, 1, true, "{\"status\": \"online\"}")
+	client.Publish(statusTopic, MQTT_QOS_AT_LEAST_ONCE, true, "{\"status\": \"online\"}")
 }
 
 func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
@@ -67,7 +77,7 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	clientOptions.SetKeepAlive(time.Minute)
 	clientOptions.SetOnConnectHandler(publishBirthMessage)
 	clientOptions.SetTLSConfig(tlsConfig)
-	clientOptions.SetWill(statusTopic, "{\"status\": \"offline\"}", 1, true)
+	clientOptions.SetWill(statusTopic, "{\"status\": \"offline\"}", MQTT_QOS_AT_LEAST_ONCE, true)
 
 	synapse := new(MQTT)
 	synapse.client = paho.NewClient(clientOptions)
@@ -131,7 +141,7 @@ func (mqtt *MQTT) ParseState(message Message) (medulla.DeviceState, error) {
 
 func (mqtt *MQTT) Publish(message Message, topic string) error {
 	mqtt.logger.Printf("Publishing MQTT message to topic '%s'...", topic)
-	mqtt.client.Publish(topic, 1, true, []byte(message))
+	mqtt.client.Publish(topic, defaultQos, true, []byte(message))
 	return nil
 }
 
@@ -158,7 +168,7 @@ func (mqtt *MQTT) Subscribe(topic string) (<-chan Message, error) {
 	messages := make(chan Message)
 	mqtt.channels = append(mqtt.channels, messages)
 
-	mqtt.client.Subscribe(topic, 1, func(client paho.Client, message paho.Message) {
+	mqtt.client.Subscribe(topic, defaultQos, func(client paho.Client, message paho.Message) {
 		messages <- Message(message.Payload())
 		message.Ack()
 	})

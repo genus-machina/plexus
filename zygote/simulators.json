@@ -4,13 +4,13 @@
 			"name": "actuator",
 			"type": "simulator",
 			"driver": "actuator",
-			"topic": "actuator"
+			"commandTopic": "actuator"
 		},
 		{
 			"name": "trigger",
 			"type": "simulator",
 			"driver": "trigger",
-			"topic": "trigger"
+			"statusTopic": "trigger"
 		}
 	],
 	"synapse": {

@@ -4,61 +4,61 @@
 			"name": "blue",
 			"type": "led",
 			"pin": "17",
-			"topic": "/devices/leds/blue"
+			"commandTopic": "/devices/leds/blue"
 		},
 		{
 			"name": "green",
 			"type": "led",
 			"pin": "18",
-			"topic": "/devices/leds/green"
+			"commandTopic": "/devices/leds/green"
 		},
 		{
 			"name": "red",
 			"type": "led",
 			"pin": "22",
-			"topic": "/devices/leds/red"
+			"commandTopic": "/devices/leds/red"
 		},
 		{
 			"name": "yellow",
 			"type": "led",
 			"pin": "27",
-			"topic": "/devices/leds/yellow"
+			"commandTopic": "/devices/leds/yellow"
 		},
 		{
 			"name": "white",
 			"type": "led",
 			"pin": "4",
-			"topic": "/devices/leds/white"
+			"commandTopic": "/devices/leds/white"
 		},
 		{
 			"name": "A",
 			"type": "button",
 			"pin": "5",
-			"topic": "/devices/leds/blue"
+			"statusTopic": "/devices/leds/blue"
 		},
 		{
 			"name": "B",
 			"type": "button",
 			"pin": "6",
-			"topic": "/devices/leds/green"
+			"statusTopic": "/devices/leds/green"
 		},
 		{
 			"name": "C",
 			"type": "button",
 			"pin": "12",
-			"topic": "/devices/leds/red"
+			"statusTopic": "/devices/leds/red"
 		},
 		{
 			"name": "D",
 			"type": "button",
 			"pin": "13",
-			"topic": "/devices/leds/yellow"
+			"statusTopic": "/devices/leds/yellow"
 		},
 		{
 			"name": "E",
 			"type": "button",
 			"pin": "16",
-			"topic": "/devices/leds/white"
+			"statusTopic": "/devices/leds/white"
 		}
 	],
 	"synapse": {

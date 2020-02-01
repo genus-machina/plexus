@@ -47,24 +47,26 @@ func (system *System) Halt() {
 	}
 }
 
-func applyMessages(protocol synapse.Protocol, messages <-chan synapse.Message, device medulla.Actuator) {
+func applyMessages(protocol synapse.Protocol, device medulla.Actuator, messages <-chan synapse.Message, statusTopic string) {
 	for message := range messages {
-		protocol.Apply(message, device)
+		if err := protocol.Apply(message, device); err != nil && statusTopic != "" {
+			protocol.Publish(message, statusTopic)
+		}
 	}
 }
 
-func bindActuator(synapse synapse.Protocol, device medulla.Actuator, topic string) error {
-	if messages, err := synapse.Subscribe(topic); err == nil {
-		go applyMessages(synapse, messages, device)
+func bindActuator(synapse synapse.Protocol, device medulla.Actuator, commandTopic, statusTopic string) error {
+	if messages, err := synapse.Subscribe(commandTopic); err == nil {
+		go applyMessages(synapse, device, messages, statusTopic)
 		return nil
 	} else {
 		return err
 	}
 }
 
-func bindTrigger(synapse synapse.Protocol, device medulla.Trigger, topic string) error {
+func bindTrigger(synapse synapse.Protocol, device medulla.Trigger, statusTopic string) error {
 	if states, err := device.Subscribe(); err == nil {
-		go publishStates(synapse, states, topic)
+		go publishStates(synapse, states, statusTopic)
 		return nil
 	} else {
 		return err
@@ -81,8 +83,8 @@ func buildButton(config *deviceConfig, synapse synapse.Protocol) (medulla.Device
 		return nil, err
 	}
 
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+	if !(config.StatusTopic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
@@ -166,8 +168,8 @@ func buildLamp(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, 
 	}
 
 	device := actuators.NewLamp(config.Name, gpioreg.ByName(config.Pin))
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindActuator(synapse, device, config.Topic); err != nil {
+	if !(config.CommandTopic == "" || synapse == nil) {
+		if err := bindActuator(synapse, device, config.CommandTopic, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
@@ -180,8 +182,8 @@ func buildLED(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, e
 	}
 
 	device := actuators.NewLED(config.Name, gpioreg.ByName(config.Pin))
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindActuator(synapse, device, config.Topic); err != nil {
+	if !(config.CommandTopic == "" || synapse == nil) {
+		if err := bindActuator(synapse, device, config.CommandTopic, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
@@ -198,8 +200,8 @@ func buildPhototransistor(config *deviceConfig, synapse synapse.Protocol) (medul
 		return nil, err
 	}
 
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+	if !(config.StatusTopic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
@@ -216,8 +218,8 @@ func buildPIR(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, e
 		return nil, err
 	}
 
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+	if !(config.StatusTopic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
@@ -241,16 +243,16 @@ func buildSimulator(config *deviceConfig, synapse synapse.Protocol) (medulla.Dev
 	switch config.Driver {
 	case "actuator":
 		device := actuators.NewSimulator(config.Name)
-		if !(config.Topic == "" || synapse == nil) {
-			if err := bindActuator(synapse, device, config.Topic); err != nil {
+		if !(config.CommandTopic == "" || synapse == nil) {
+			if err := bindActuator(synapse, device, config.CommandTopic, config.StatusTopic); err != nil {
 				return nil, err
 			}
 		}
 		return device, nil
 	case "trigger":
 		device := triggers.NewSimulator(config.Name)
-		if !(config.Topic == "" || synapse == nil) {
-			if err := bindTrigger(synapse, device, config.Topic); err != nil {
+		if !(config.StatusTopic == "" || synapse == nil) {
+			if err := bindTrigger(synapse, device, config.StatusTopic); err != nil {
 				return nil, err
 			}
 		}
@@ -333,8 +335,8 @@ func buildWater(config *deviceConfig, synapse synapse.Protocol) (medulla.Device,
 		return nil, err
 	}
 
-	if !(config.Topic == "" || synapse == nil) {
-		if err := bindTrigger(synapse, device, config.Topic); err != nil {
+	if !(config.StatusTopic == "" || synapse == nil) {
+		if err := bindTrigger(synapse, device, config.StatusTopic); err != nil {
 			return nil, err
 		}
 	}
