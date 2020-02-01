@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"sync"
 	"time"
 
 	paho "github.com/eclipse/paho.mqtt.golang"
@@ -15,9 +16,10 @@ import (
 )
 
 type MQTT struct {
-	channels []chan Message
-	client   paho.Client
-	logger   *log.Logger
+	client        paho.Client
+	logger        *log.Logger
+	mutex         sync.Mutex
+	subscriptions map[string][]chan Message
 }
 
 type MQTTOptions struct {
@@ -49,6 +51,20 @@ func publishBirthMessage(client paho.Client) {
 	client.Publish(statusTopic, MQTT_QOS_AT_LEAST_ONCE, true, "{\"status\": \"online\"}")
 }
 
+func connectionHandler(mqtt *MQTT) paho.OnConnectHandler {
+	return func(client paho.Client) {
+		mqtt.logger.Println("Connected to MQTT broker.")
+		publishBirthMessage(client)
+		mqtt.resubscribe()
+	}
+}
+
+func connectionLostHandler(mqtt *MQTT) paho.ConnectionLostHandler {
+	return func(client paho.Client, err error) {
+		mqtt.logger.Printf("Lost connection to MQTT broker. %s.\n", err.Error())
+	}
+}
+
 func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	caContents, err := ioutil.ReadFile(options.CaFile)
 	if err != nil {
@@ -63,6 +79,10 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 		return nil, err
 	}
 
+	synapse := new(MQTT)
+	synapse.logger = logger
+	synapse.subscriptions = make(map[string][]chan Message)
+
 	statusTopic := getStatusTopic(options.ClientId)
 
 	tlsConfig := new(tls.Config)
@@ -74,22 +94,14 @@ func NewMQTT(logger *log.Logger, options *MQTTOptions) (*MQTT, error) {
 	clientOptions.SetAutoReconnect(true)
 	clientOptions.SetCleanSession(true)
 	clientOptions.SetClientID(options.ClientId)
+	clientOptions.SetConnectionLostHandler(connectionLostHandler(synapse))
 	clientOptions.SetKeepAlive(time.Minute)
-	clientOptions.SetOnConnectHandler(publishBirthMessage)
+	clientOptions.SetOnConnectHandler(connectionHandler(synapse))
 	clientOptions.SetTLSConfig(tlsConfig)
 	clientOptions.SetWill(statusTopic, "{\"status\": \"offline\"}", MQTT_QOS_AT_LEAST_ONCE, true)
 
-	synapse := new(MQTT)
 	synapse.client = paho.NewClient(clientOptions)
-
-	token := synapse.client.Connect()
-	token.Wait()
-
-	if err := token.Error(); err != nil {
-		return nil, err
-	}
-
-	synapse.logger = logger
+	synapse.client.Connect()
 	return synapse, nil
 }
 
@@ -120,8 +132,10 @@ func (mqtt *MQTT) Close() error {
 	mqtt.logger.Printf("Closing synapse...")
 	mqtt.client.Disconnect(250)
 
-	for _, channel := range mqtt.channels {
-		close(channel)
+	for _, subscription := range mqtt.subscriptions {
+		for _, channel := range subscription {
+			close(channel)
+		}
 	}
 
 	return nil
@@ -163,15 +177,59 @@ func (mqtt *MQTT) PublishState(state medulla.DeviceState, topic string) error {
 	return mqtt.Publish(message, topic)
 }
 
-func (mqtt *MQTT) Subscribe(topic string) (<-chan Message, error) {
-	mqtt.logger.Printf("Subscribing to topic '%s'...", topic)
-	messages := make(chan Message)
-	mqtt.channels = append(mqtt.channels, messages)
+func (mqtt *MQTT) createSubscription(topic string) <-chan Message {
+	mqtt.mutex.Lock()
+	defer mqtt.mutex.Unlock()
 
+	messages := make(chan Message)
+	subscriptions := mqtt.getSubscriptions(topic)
+
+	if len(subscriptions) == 0 {
+		mqtt.subscribeToTopic(topic)
+	}
+
+	subscriptions = append(subscriptions, messages)
+	mqtt.setSubscriptions(topic, subscriptions)
+	return messages
+}
+
+func (mqtt *MQTT) getSubscriptions(topic string) []chan Message {
+	return mqtt.subscriptions[topic]
+}
+
+func (mqtt *MQTT) setSubscriptions(topic string, subscriptions []chan Message) {
+	mqtt.subscriptions[topic] = subscriptions
+}
+
+func (mqtt *MQTT) resubscribe() {
+	mqtt.mutex.Lock()
+	defer mqtt.mutex.Unlock()
+
+	if len(mqtt.subscriptions) > 0 {
+		mqtt.logger.Println("Resubscribing to all previously subscribed topics...")
+		for topic, _ := range mqtt.subscriptions {
+			mqtt.subscribeToTopic(topic)
+		}
+	} else {
+		mqtt.logger.Println("No previously subscribed topics.")
+	}
+}
+
+func (mqtt *MQTT) subscribeToTopic(topic string) {
 	mqtt.client.Subscribe(topic, defaultQos, func(client paho.Client, message paho.Message) {
-		messages <- Message(message.Payload())
+		mqtt.mutex.Lock()
+		defer mqtt.mutex.Unlock()
+
+		subscriptions := mqtt.getSubscriptions(topic)
+		for _, channel := range subscriptions {
+			channel <- Message(message.Payload())
+		}
 		message.Ack()
 	})
+}
 
+func (mqtt *MQTT) Subscribe(topic string) (<-chan Message, error) {
+	mqtt.logger.Printf("Subscribing to topic '%s'...", topic)
+	messages := mqtt.createSubscription(topic)
 	return messages, nil
 }
