@@ -49,7 +49,7 @@ func (system *System) Halt() {
 
 func applyMessages(protocol synapse.Protocol, device medulla.Actuator, messages <-chan synapse.Message, statusTopic string) {
 	for message := range messages {
-		if err := protocol.Apply(message, device); err != nil && statusTopic != "" {
+		if err := protocol.Apply(message, device); err == nil && statusTopic != "" {
 			protocol.Publish(message, statusTopic)
 		}
 	}
