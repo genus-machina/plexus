@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/hippocampus"
@@ -143,7 +144,7 @@ func buildDevices(config *systemConfig, synapse synapse.Protocol) ([]medulla.Dev
 	return devices, nil
 }
 
-func buildEnvironmentalSensor() (hypothalamus.Sensor, error) {
+func buildEnvironmentalSensor(config *environmentalConfig, synapse synapse.Protocol) (hypothalamus.Sensor, error) {
 	i2cBus, err := i2creg.Open("")
 	if err != nil {
 		return nil, err
@@ -155,11 +156,25 @@ func buildEnvironmentalSensor() (hypothalamus.Sensor, error) {
 		Humidity:    bmxx80.O16x,
 	}
 
-	if device, err := bmxx80.NewI2C(i2cBus, 0x76, options); err == nil {
-		return hypothalamus.NewBME280(device), nil
-	} else {
+	device, err := bmxx80.NewI2C(i2cBus, 0x76, options)
+	if err != nil {
 		return nil, err
 	}
+
+	sensor := hypothalamus.NewBME280(device)
+	if !(config.StatusTopic == "" || synapse == nil) {
+		period := 10 * time.Minute
+		if config.Period != 0 {
+			period = time.Duration(config.Period) * time.Second
+		}
+		if measurements, err := sensor.SenseContinuous(period); err == nil {
+			go publishMeasurements(synapse, measurements, config.StatusTopic)
+		} else {
+			return nil, err
+		}
+	}
+
+	return sensor, nil
 }
 
 func buildLamp(config *deviceConfig, synapse synapse.Protocol) (medulla.Device, error) {
@@ -310,15 +325,15 @@ func buildSystem(config *systemConfig, logger *log.Logger) (*System, error) {
 		if screen, err := buildScreen(); err == nil {
 			system.Screen = screen
 		} else {
-			return nil, err
+			return nil, fmt.Errorf("Failed to initialize screen: %s", err.Error())
 		}
 	}
 
-	if config.EnvironmentalSensor {
-		if sensor, err := buildEnvironmentalSensor(); err == nil {
+	if config.EnvironmentalSensor != nil {
+		if sensor, err := buildEnvironmentalSensor(config.EnvironmentalSensor, system.Synapse); err == nil {
 			system.EnvironmentalSensor = sensor
 		} else {
-			return nil, err
+			return nil, fmt.Errorf("Failed to initialize environmental sensor: %s", err.Error())
 		}
 	}
 
@@ -366,6 +381,12 @@ func parseJSON(path string) (*systemConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func publishMeasurements(protocol synapse.Protocol, measurements <-chan hypothalamus.Environmental, topic string) {
+	for measurement := range measurements {
+		protocol.PublishEnvironmental(measurement, topic)
+	}
 }
 
 func publishStates(protocol synapse.Protocol, states <-chan medulla.DeviceState, topic string) {
