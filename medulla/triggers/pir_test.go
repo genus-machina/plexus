@@ -2,6 +2,7 @@ package triggers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/genus-machina/plexus/medulla"
 	"periph.io/x/periph/conn/gpio"
@@ -52,8 +53,8 @@ func TestPIRState(t *testing.T) {
 	assertIsInactive(t, device)
 
 	expected := []medulla.DeviceState{
-		medulla.NewDeviceState(true, false),
-		medulla.NewDeviceState(false, false),
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(false, false, time.Unix(0, 0)),
 	}
 	assertStates(t, expected, results)
 }

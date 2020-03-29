@@ -2,6 +2,7 @@ package medulla
 
 import (
 	"fmt"
+	"time"
 )
 
 type Actuator interface {
@@ -19,6 +20,7 @@ type Device interface {
 type DeviceState interface {
 	IsActive() bool
 	IsHalted() bool
+	Time() time.Time
 }
 
 type Trigger interface {

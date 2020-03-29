@@ -3,6 +3,7 @@ package bus
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/genus-machina/plexus/hippocampus"
 	"github.com/genus-machina/plexus/medulla"
@@ -108,8 +109,8 @@ func TestDeviceBusSubscribeExisting(t *testing.T) {
 	}
 
 	expected := []medulla.DeviceState{
-		medulla.NewDeviceState(true, false),
-		medulla.NewDeviceState(false, false),
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(false, false, time.Unix(0, 0)),
 	}
 
 	assertStates(t, expected, values)

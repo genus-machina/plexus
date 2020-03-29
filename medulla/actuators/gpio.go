@@ -1,6 +1,8 @@
 package actuators
 
 import (
+	"time"
+
 	"github.com/genus-machina/plexus/medulla"
 	"periph.io/x/periph/conn/gpio"
 )
@@ -54,5 +56,5 @@ func (device *gpioActuator) Name() string {
 }
 
 func (device *gpioActuator) State() medulla.DeviceState {
-	return medulla.NewDeviceState(device.active, device.halted)
+	return medulla.NewDeviceState(device.active, device.halted, time.Now())
 }

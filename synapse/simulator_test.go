@@ -6,7 +6,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla/actuators"
 )
 
@@ -182,10 +181,11 @@ func TestSimulatorEnvironmental(t *testing.T) {
 	simulator := NewSimulator(logger)
 	topic := "environment"
 	channel := assertSubscribe(t, simulator, topic)
-	value := new(hypothalamus.PhysicEnv)
+	value := new(jsonEnvironmental)
 	value.Humidity = 1
 	value.Pressure = 2
 	value.Temperature = 3
+	value.TimeRecorded = "1970-01-01T01:23:45Z"
 
 	go func() {
 		assertPublishEnvironmental(t, simulator, value, topic)

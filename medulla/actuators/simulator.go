@@ -1,6 +1,8 @@
 package actuators
 
 import (
+	"time"
+
 	"github.com/genus-machina/plexus/medulla"
 )
 
@@ -45,5 +47,5 @@ func (device *Simulator) Name() string {
 }
 
 func (device *Simulator) State() medulla.DeviceState {
-	return medulla.NewDeviceState(device.active, device.halted)
+	return medulla.NewDeviceState(device.active, device.halted, time.Now())
 }

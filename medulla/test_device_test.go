@@ -1,9 +1,14 @@
 package medulla
 
+import (
+	"time"
+)
+
 type TestDevice struct {
 	Active     bool
 	DeviceName string
 	Halted     bool
+	Time       time.Time
 }
 
 func NewTestDevice() *TestDevice {
@@ -20,5 +25,5 @@ func (device *TestDevice) Name() string {
 }
 
 func (device *TestDevice) State() DeviceState {
-	return NewDeviceState(device.Active, device.Halted)
+	return NewDeviceState(device.Active, device.Halted, device.Time)
 }

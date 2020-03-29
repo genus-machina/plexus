@@ -2,8 +2,9 @@ package synapse
 
 import (
 	"bytes"
-	"encoding/binary"
+	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla"
@@ -65,18 +66,13 @@ func (simulator *Simulator) getSubscriptions(topic string) []chan Message {
 }
 
 func (simulator *Simulator) ParseEnvironmental(message Message) (hypothalamus.Environmental, error) {
-	buffer := bytes.NewBuffer([]byte(message))
-	value := new(hypothalamus.PhysicEnv)
-
-	if err := binary.Read(buffer, binary.BigEndian, value); err != nil {
-		return nil, err
-	}
-
-	return value, nil
+	environmental := new(jsonEnvironmental)
+	err := json.Unmarshal([]byte(message), environmental)
+	return environmental, err
 }
 
 func (simulator *Simulator) ParseState(message Message) (medulla.DeviceState, error) {
-	state := medulla.NewDeviceState(bytes.Equal(message, SIMULATOR_ACTIVATED), false)
+	state := medulla.NewDeviceState(bytes.Equal(message, SIMULATOR_ACTIVATED), false, time.Now())
 	return state, nil
 }
 
@@ -89,11 +85,11 @@ func (simulator *Simulator) Publish(message Message, topic string) error {
 }
 
 func (simulator *Simulator) PublishEnvironmental(environmental hypothalamus.Environmental, topic string) error {
-	buffer := new(bytes.Buffer)
-	if err := binary.Write(buffer, binary.BigEndian, environmental); err != nil {
+	message, err := json.Marshal(JsonEnvironmental(environmental))
+	if err != nil {
 		return err
 	}
-	return simulator.Publish(Message(buffer.Bytes()), topic)
+	return simulator.Publish(message, topic)
 }
 
 func (simulator *Simulator) PublishState(state medulla.DeviceState, topic string) error {

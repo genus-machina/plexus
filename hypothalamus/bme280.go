@@ -21,8 +21,10 @@ func (device *BME280) convert(values <-chan physic.Env, measurements chan<- Envi
 	defer close(measurements)
 
 	for value := range values {
-		measurement := PhysicEnv(value)
-		measurements <- &measurement
+		measurement := new(physicEnv)
+		measurement.env = value
+		measurement.time = time.Now()
+		measurements <- measurement
 	}
 }
 

@@ -1,6 +1,8 @@
 package synapse
 
 import (
+	"time"
+
 	"github.com/genus-machina/plexus/medulla"
 )
 
@@ -19,5 +21,5 @@ func (device *TestDevice) Name() string {
 }
 
 func (device *TestDevice) State() medulla.DeviceState {
-	return medulla.NewDeviceState(false, false)
+	return medulla.NewDeviceState(false, false, time.Unix(0, 0))
 }

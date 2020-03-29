@@ -36,7 +36,7 @@ func (device *gpioTrigger) Name() string {
 }
 
 func (device *gpioTrigger) State() medulla.DeviceState {
-	return medulla.NewDeviceState(device.active, device.halted)
+	return medulla.NewDeviceState(device.active, device.halted, time.Now())
 }
 
 func (device *gpioTrigger) Subscribe() (<-chan medulla.DeviceState, error) {
@@ -56,8 +56,9 @@ func (device *gpioTrigger) broadcast() {
 	device.mutex.Lock()
 	defer device.mutex.Unlock()
 
+	currentTime := time.Now()
 	for _, subscription := range device.subscriptions {
-		subscription <- medulla.NewDeviceState(device.active, device.halted)
+		subscription <- medulla.NewDeviceState(device.active, device.halted, currentTime)
 	}
 }
 

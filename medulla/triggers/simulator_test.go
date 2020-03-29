@@ -3,6 +3,7 @@ package triggers
 import (
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/genus-machina/plexus/medulla"
 )
@@ -68,9 +69,9 @@ func TestSimulatorSubscribe(t *testing.T) {
 	}
 
 	expected := []medulla.DeviceState{
-		medulla.NewDeviceState(true, false),
-		medulla.NewDeviceState(false, false),
-		medulla.NewDeviceState(true, false),
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(false, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
 	}
 
 	assertStates(t, expected, values)
@@ -109,8 +110,8 @@ func TestSimulatorMultipleSubscriptions(t *testing.T) {
 	waitGroup.Wait()
 
 	expected := []medulla.DeviceState{
-		medulla.NewDeviceState(true, false),
-		medulla.NewDeviceState(false, false),
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(false, false, time.Unix(0, 0)),
 	}
 
 	assertStates(t, expected, values1)

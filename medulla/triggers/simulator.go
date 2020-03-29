@@ -1,6 +1,8 @@
 package triggers
 
 import (
+	"time"
+
 	"github.com/genus-machina/plexus/medulla"
 )
 
@@ -78,7 +80,7 @@ func (device *Simulator) emit() {
 }
 
 func (device *Simulator) State() medulla.DeviceState {
-	return medulla.NewDeviceState(device.active, device.halted)
+	return medulla.NewDeviceState(device.active, device.halted, time.Now())
 }
 
 func (device *Simulator) Subscribe() (<-chan medulla.DeviceState, error) {

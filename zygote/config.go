@@ -10,7 +10,7 @@ type deviceConfig struct {
 }
 
 type environmentalConfig struct {
-	Period int `json:"period"`
+	Period      int    `json:"period"`
 	StatusTopic string `json:"statusTopic,omitempty"`
 }
 
@@ -24,8 +24,8 @@ type synapseConfig struct {
 }
 
 type systemConfig struct {
-	EnvironmentalSensor *environmentalConfig            `json:"environmentalSensor"`
-	Devices             []*deviceConfig `json:"devices"`
-	Screen              bool            `json:"screen"`
-	Synapse             *synapseConfig  `json:"synapse"`
+	EnvironmentalSensor *environmentalConfig `json:"environmentalSensor"`
+	Devices             []*deviceConfig      `json:"devices"`
+	Screen              bool                 `json:"screen"`
+	Synapse             *synapseConfig       `json:"synapse"`
 }

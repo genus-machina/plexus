@@ -3,6 +3,7 @@ package synapse
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/genus-machina/plexus/hypothalamus"
 	"github.com/genus-machina/plexus/medulla"
@@ -84,7 +85,7 @@ func assertPublishEnvironmental(t *testing.T, simulator *Simulator, environmenta
 }
 
 func assertPublishState(t *testing.T, simulator *Simulator, active bool, halted bool, topic string) {
-	state := medulla.NewDeviceState(active, halted)
+	state := medulla.NewDeviceState(active, halted, time.Unix(0, 0))
 	if err := simulator.PublishState(state, topic); err != nil {
 		t.Errorf("publish state error: %s", err.Error())
 	}
