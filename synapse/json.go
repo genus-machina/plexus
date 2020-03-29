@@ -12,8 +12,8 @@ const (
 )
 
 type jsonDeviceState struct {
-	Active bool `json:"active"`
-	Halted bool `json:"halted"`
+	Active       bool   `json:"active"`
+	Halted       bool   `json:"halted"`
 	TimeRecorded string `json:"time"`
 }
 
@@ -39,10 +39,10 @@ func (json *jsonDeviceState) Time() time.Time {
 }
 
 type jsonEnvironmental struct {
-	Humidity    float64 `json:"humidity"`
-	Pressure    float64 `json:"pressure"`
-	Temperature float64 `json:"temperature"`
-	TimeRecorded string `json:"time"`
+	Humidity     float64 `json:"humidity"`
+	Pressure     float64 `json:"pressure"`
+	Temperature  float64 `json:"temperature"`
+	TimeRecorded string  `json:"time"`
 }
 
 func JsonEnvironmental(environmental hypothalamus.Environmental) *jsonEnvironmental {
