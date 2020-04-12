@@ -41,7 +41,8 @@ func (widget *TextBox) Render(canvas draw.Image) {
 	drawer.Src = image.NewUniform(color.White)
 	drawer.DrawString(widget.text)
 
-	draw.Draw(canvas, widget.bounds, drawer.Dst, widget.bounds.Min, draw.Src)
+	merged := NewAlphaXor(drawer.Dst, canvas)
+	draw.Draw(canvas, widget.bounds, merged, merged.Bounds().Min, draw.Src)
 }
 
 func (widget *TextBox) SetBounds(bounds image.Rectangle) {

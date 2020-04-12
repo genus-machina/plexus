@@ -2,6 +2,7 @@ package amygdala
 
 import (
 	"image"
+	"image/color"
 	"image/draw"
 	"testing"
 
@@ -30,6 +31,19 @@ func TestTextBoxBounds(t *testing.T) {
 
 func TestTextBoxRender(t *testing.T) {
 	canvas, widget := createTestTextBox()
+	widget.Render(canvas)
+	saveImage(t, "content", canvas)
+}
+
+func TestTextBoxRenderBackground(t *testing.T) {
+	canvas, widget := createTestTextBox()
+	bounds := image.Rect(
+		canvas.Bounds().Min.X,
+		canvas.Bounds().Min.Y,
+		canvas.Bounds().Max.X/2,
+		canvas.Bounds().Max.Y,
+	)
+	draw.Draw(canvas, bounds, image.NewUniform(color.White), canvas.Bounds().Min, draw.Src)
 	widget.Render(canvas)
 	saveImage(t, "content", canvas)
 }
