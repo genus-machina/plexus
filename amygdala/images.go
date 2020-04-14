@@ -28,7 +28,7 @@ func (xor *AlphaXor) At(x, y int) color.Color {
 }
 
 func (xor *AlphaXor) Bounds() image.Rectangle {
-	return xor.left.Bounds().Intersect(xor.right.Bounds())
+	return xor.left.Bounds().Union(xor.right.Bounds())
 }
 
 func (xor *AlphaXor) ColorModel() color.Model {

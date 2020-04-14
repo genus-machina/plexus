@@ -1,10 +1,12 @@
 package amygdala
 
 import (
+	"encoding/json"
 	"image"
 	"image/color"
 	"image/draw"
 	"math"
+	"os"
 	"sort"
 	"time"
 )
@@ -17,6 +19,19 @@ type TimeSeriesPoint struct {
 type timeSeriesPointComparison func(i, j int) bool
 
 type TimeSeries []TimeSeriesPoint
+
+func LoadTimeSeries(path string) (TimeSeries, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var series TimeSeries
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&series)
+	return series, err
+}
 
 func (series TimeSeries) at(t time.Time) *TimeSeriesPoint {
 	length := len(series)
@@ -107,6 +122,17 @@ func (series TimeSeries) Plot() *TimeSeriesPlot {
 	return widget
 }
 
+func (series TimeSeries) Serialize(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	return encoder.Encode(series)
+}
+
 func (series TimeSeries) Sort() {
 	sort.Slice(series, series.timeIsLessThan)
 }
@@ -149,10 +175,9 @@ func (series TimeSeries) Zoom(start, end time.Time) TimeSeries {
 }
 
 type TimeSeriesPlot struct {
-	bounds  image.Rectangle
-	content Widget
-	fill    bool
-	series  TimeSeries
+	bounds image.Rectangle
+	fill   bool
+	series TimeSeries
 }
 
 func (widget *TimeSeriesPlot) Bounds() image.Rectangle {
@@ -206,19 +231,10 @@ func (widget *TimeSeriesPlot) Render(canvas draw.Image) {
 
 		previousY = y
 	}
-
-	if widget.content != nil {
-		widget.content.SetBounds(widget.bounds)
-		widget.content.Render(canvas)
-	}
 }
 
 func (widget *TimeSeriesPlot) SetBounds(bounds image.Rectangle) {
 	widget.bounds = bounds
-}
-
-func (widget *TimeSeriesPlot) SetContent(content Widget) {
-	widget.content = content
 }
 
 func (widget *TimeSeriesPlot) SetFill(fill bool) {

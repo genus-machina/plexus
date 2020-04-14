@@ -114,6 +114,24 @@ func TestTimeSeriesMin(t *testing.T) {
 	assertFloatEquals(t, min.Value, series[0].Value)
 }
 
+func TestTimeSeriesSerialize(t *testing.T) {
+	series := make(TimeSeries, 0, 0)
+	series = append(series, TimeSeriesPoint{time.Unix(0, 0), 0})
+	series = append(series, TimeSeriesPoint{time.Unix(1, 0), 1})
+
+	file := t.Name() + ".json"
+
+	if err := series.Serialize(file); err != nil {
+		t.Errorf("Failed to serialize time series. %s.", err.Error())
+	}
+
+	if serialized, err := LoadTimeSeries(file); err != nil {
+		t.Errorf("Failed to load time series. %s.", err.Error())
+	} else {
+		assertSeriesEquals(t, serialized, series)
+	}
+}
+
 func TestTimeSeriesSort(t *testing.T) {
 	series := make(TimeSeries, 0, 0)
 
@@ -183,7 +201,14 @@ func RenderSeries(t *testing.T, series TimeSeries) {
 	plot := series.Plot()
 	plot.SetBounds(canvas.Bounds())
 	plot.Render(canvas)
-	saveImage(t, "plot", canvas)
+	saveImage(t, "plain", canvas)
+
+	canvas = image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	plot = series.Plot()
+	plot.SetBounds(canvas.Bounds())
+	plot.SetFill(true)
+	plot.Render(canvas)
+	saveImage(t, "filled", canvas)
 }
 
 func TestTimeSeriesPlotRenderLine(t *testing.T) {
@@ -203,36 +228,6 @@ func TestTimeSeriesPlotRenderCurve(t *testing.T) {
 		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), math.Sin(float64(i) * step)})
 	}
 	RenderSeries(t, series)
-}
-
-func TestTimeSeriesPlotRenderCurveContent(t *testing.T) {
-	series := make(TimeSeries, 0, 0)
-	step := 2 * math.Pi / 128
-	for i := 0; i < 128; i++ {
-		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), math.Sin(float64(i) * step)})
-	}
-
-	column := NewColumn()
-	face := NewFontFace(20)
-	text := NewTextBox(face, "Sine")
-	cell := NewCell(text)
-	cell.Align(AlignMiddle)
-	cell.Justify(JustifyCenter)
-	column.AppendRow(cell, nil)
-	text = NewTextBox(face, "Wave")
-	cell = NewCell(text)
-	cell.Align(AlignMiddle)
-	cell.Justify(JustifyCenter)
-	column.AppendRow(cell, nil)
-
-	canvas := image.NewNRGBA(image.Rect(0, 0, 128, 64))
-	plot := series.Plot()
-	plot.SetBounds(canvas.Bounds())
-	plot.SetContent(column)
-	plot.SetFill(true)
-	plot.Render(canvas)
-	saveImage(t, "plot", canvas)
-
 }
 
 func TestTimeSeriesPlotRenderRandom(t *testing.T) {
