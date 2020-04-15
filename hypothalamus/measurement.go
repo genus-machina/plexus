@@ -8,7 +8,7 @@ import (
 
 type Environmental interface {
 	Fahrenheit() float64
-	MmHg() float64
+	InHg() float64
 	RelativeHumidity() float64
 	Time() time.Time
 }
@@ -22,7 +22,7 @@ func (measurement *physicEnv) Fahrenheit() float64 {
 	return measurement.env.Temperature.Fahrenheit()
 }
 
-func (measurement *physicEnv) MmHg() float64 {
+func (measurement *physicEnv) InHg() float64 {
 	return float64(measurement.env.Pressure) / float64(physic.Pascal) / 3386.38816
 }
 

@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+const (
+	CenterBase = iota
+	CenterFirst
+	CenterLast
+	CenterMean
+	CenterMedian
+)
+
 type TimeSeriesPoint struct {
 	Time  time.Time
 	Value float64
@@ -112,6 +120,36 @@ func (series TimeSeries) Max() *TimeSeriesPoint {
 	return series.find(series.valueIsGreaterThan)
 }
 
+func (series TimeSeries) Mean() float64 {
+	value := 0.0
+
+	for _, point := range series {
+		value += point.Value
+	}
+
+	if count := len(series); count > 0 {
+		value = value / float64(count)
+	}
+
+	return value
+}
+
+func (series TimeSeries) Median() float64 {
+	sort.Slice(series, series.valueIsLessThan)
+
+	if count := len(series); count == 0 {
+		return 0
+	} else if count%2 == 1 {
+		index := count / 2
+		return series[index].Value
+	} else {
+		index := count / 2
+		left := series[index-1].Value
+		right := series[index].Value
+		return (left + right) / 2
+	}
+}
+
 func (series TimeSeries) Min() *TimeSeriesPoint {
 	return series.find(series.valueIsLessThan)
 }
@@ -176,6 +214,7 @@ func (series TimeSeries) Zoom(start, end time.Time) TimeSeries {
 
 type TimeSeriesPlot struct {
 	bounds image.Rectangle
+	center int
 	fill   bool
 	series TimeSeries
 }
@@ -213,14 +252,30 @@ func (widget *TimeSeriesPlot) Render(canvas draw.Image) {
 		scale = float64(height - 1)
 	}
 
+	plotValue := func(value float64) int {
+		scaledValue := int(math.Round((value - min) * scale))
+		return widget.bounds.Max.Y - scaledValue - 1
+	}
+
+	center := widget.bounds.Max.Y - 1
+	switch widget.center {
+	case CenterFirst:
+		center = plotValue(widget.series.First().Value)
+	case CenterLast:
+		center = plotValue(widget.series.Last().Value)
+	case CenterMean:
+		center = plotValue(widget.series.Mean())
+	case CenterMedian:
+		center = plotValue(widget.series.Median())
+	}
+
 	previousY := 0
 	for index, point := range data {
-		value := int(math.Round((point.Value - min) * scale))
 		x := widget.bounds.Min.X + index
-		y := widget.bounds.Max.Y - value - 1
+		y := plotValue(point.Value)
 
 		if widget.fill {
-			widget.drawLine(canvas, x, height-1, y)
+			widget.drawLine(canvas, x, center, y)
 		} else {
 			if index > 0 {
 				widget.drawLine(canvas, x, previousY, y)
@@ -235,6 +290,10 @@ func (widget *TimeSeriesPlot) Render(canvas draw.Image) {
 
 func (widget *TimeSeriesPlot) SetBounds(bounds image.Rectangle) {
 	widget.bounds = bounds
+}
+
+func (widget *TimeSeriesPlot) SetCenter(center int) {
+	widget.center = center
 }
 
 func (widget *TimeSeriesPlot) SetFill(fill bool) {

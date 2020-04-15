@@ -197,8 +197,8 @@ func TestSimulatorEnvironmental(t *testing.T) {
 	if received.RelativeHumidity() != value.RelativeHumidity() {
 		t.Errorf("expected humidity %f but got %f", value.RelativeHumidity(), received.RelativeHumidity())
 	}
-	if received.MmHg() != value.MmHg() {
-		t.Errorf("expected pressure %f but got %f", value.MmHg(), received.MmHg())
+	if received.InHg() != value.InHg() {
+		t.Errorf("expected pressure %f but got %f", value.InHg(), received.InHg())
 	}
 	if received.Fahrenheit() != value.Fahrenheit() {
 		t.Errorf("expected temperature %f but got %f", value.Fahrenheit(), received.Fahrenheit())

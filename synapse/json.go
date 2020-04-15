@@ -48,7 +48,7 @@ type jsonEnvironmental struct {
 func JsonEnvironmental(environmental hypothalamus.Environmental) *jsonEnvironmental {
 	json := new(jsonEnvironmental)
 	json.Humidity = environmental.RelativeHumidity()
-	json.Pressure = environmental.MmHg()
+	json.Pressure = environmental.InHg()
 	json.Temperature = environmental.Fahrenheit()
 	json.TimeRecorded = environmental.Time().Format(jsonTimeFormat)
 	return json
@@ -58,7 +58,7 @@ func (json *jsonEnvironmental) Fahrenheit() float64 {
 	return json.Temperature
 }
 
-func (json *jsonEnvironmental) MmHg() float64 {
+func (json *jsonEnvironmental) InHg() float64 {
 	return json.Pressure
 }
 

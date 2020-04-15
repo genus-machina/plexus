@@ -100,6 +100,28 @@ func TestTimeSeriesMax(t *testing.T) {
 	assertFloatEquals(t, max.Value, series[1].Value)
 }
 
+func TestTimeSeriesMean(t *testing.T) {
+	series := make(TimeSeries, 0, 0)
+	assertFloatEquals(t, series.Mean(), 0)
+
+	series = append(series, TimeSeriesPoint{time.Unix(0, 0), 1})
+	series = append(series, TimeSeriesPoint{time.Unix(1, 0), 3})
+	assertFloatEquals(t, series.Mean(), 2)
+}
+
+func TestTimeSeriesMedian(t *testing.T) {
+	series := make(TimeSeries, 0, 0)
+	assertFloatEquals(t, series.Median(), 0)
+
+	series = append(series, TimeSeriesPoint{time.Unix(0, 0), 1})
+	series = append(series, TimeSeriesPoint{time.Unix(2, 0), 2})
+	series = append(series, TimeSeriesPoint{time.Unix(1, 0), 3})
+	assertFloatEquals(t, series.Median(), 2)
+
+	series = append(series, TimeSeriesPoint{time.Unix(3, 0), 4})
+	assertFloatEquals(t, series.Median(), 2.5)
+}
+
 func TestTimeSeriesMin(t *testing.T) {
 	series := make(TimeSeries, 0, 0)
 	if series.Min() != nil {
@@ -209,6 +231,38 @@ func RenderSeries(t *testing.T, series TimeSeries) {
 	plot.SetFill(true)
 	plot.Render(canvas)
 	saveImage(t, "filled", canvas)
+
+	canvas = image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	plot = series.Plot()
+	plot.SetBounds(canvas.Bounds())
+	plot.SetCenter(CenterFirst)
+	plot.SetFill(true)
+	plot.Render(canvas)
+	saveImage(t, "first", canvas)
+
+	canvas = image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	plot = series.Plot()
+	plot.SetBounds(canvas.Bounds())
+	plot.SetCenter(CenterLast)
+	plot.SetFill(true)
+	plot.Render(canvas)
+	saveImage(t, "last", canvas)
+
+	canvas = image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	plot = series.Plot()
+	plot.SetBounds(canvas.Bounds())
+	plot.SetCenter(CenterMean)
+	plot.SetFill(true)
+	plot.Render(canvas)
+	saveImage(t, "mean", canvas)
+
+	canvas = image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	plot = series.Plot()
+	plot.SetBounds(canvas.Bounds())
+	plot.SetCenter(CenterMedian)
+	plot.SetFill(true)
+	plot.Render(canvas)
+	saveImage(t, "median", canvas)
 }
 
 func TestTimeSeriesPlotRenderLine(t *testing.T) {
@@ -228,6 +282,29 @@ func TestTimeSeriesPlotRenderCurve(t *testing.T) {
 		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), math.Sin(float64(i) * step)})
 	}
 	RenderSeries(t, series)
+}
+
+func TestTimeSeriesPlotRenderCurveNested(t *testing.T) {
+	series := make(TimeSeries, 0, 0)
+	step := 2 * math.Pi / 128
+	for i := 0; i < 128; i++ {
+		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), math.Sin(float64(i) * step)})
+	}
+
+	column := NewColumn()
+	face := NewFontFace(10)
+	text := NewTextBox(face, "test")
+	column.AppendRow(text, &RowOptions{Fixed: true})
+
+	plot := series.Plot()
+	plot.SetFill(true)
+	column.AppendRow(plot, nil)
+
+	canvas := image.NewNRGBA(image.Rect(0, 0, 128, 64))
+	column.SetBounds(canvas.Bounds())
+	column.Render(canvas)
+	saveImage(t, "filled", canvas)
+
 }
 
 func TestTimeSeriesPlotRenderRandom(t *testing.T) {
@@ -250,5 +327,14 @@ func TestTimeSeriesPlotRenderSteps(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), float64(10 - i)})
 	}
+	RenderSeries(t, series)
+}
+
+func TestTimeSeriesPlotRenderWeight(t *testing.T) {
+	series := make(TimeSeries, 0, 0)
+	for i := 0; i < 10; i++ {
+		series = append(series, TimeSeriesPoint{time.Unix(int64(i), 0), float64(i % 3)})
+	}
+	series = append(series, TimeSeriesPoint{time.Unix(11, 0), 20})
 	RenderSeries(t, series)
 }

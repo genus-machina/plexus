@@ -17,12 +17,12 @@ func TestEnvironmentalFahrenheit(t *testing.T) {
 	}
 }
 
-func TestEnvironmentalMmHg(t *testing.T) {
+func TestEnvironmentalInHg(t *testing.T) {
 	measurement := new(physicEnv)
 	pressure := 32.4
 	measurement.env.Pressure = physic.Pressure(pressure * float64(physic.Pascal) * 3386.38816)
 
-	if actual := measurement.MmHg(); actual != pressure {
+	if actual := measurement.InHg(); actual != pressure {
 		t.Errorf("expected %f but got %f", pressure, actual)
 	}
 }
