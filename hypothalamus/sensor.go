@@ -6,5 +6,5 @@ import (
 
 type Sensor interface {
 	Halt() error
-	SenseContinuous(interval time.Duration) (<-chan Environmental, error)
+	SenseContinuous(interval time.Duration) <-chan Environmental
 }

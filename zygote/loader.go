@@ -19,7 +19,6 @@ import (
 
 	"periph.io/x/periph/conn/gpio/gpioreg"
 	"periph.io/x/periph/conn/i2c/i2creg"
-	"periph.io/x/periph/devices/bmxx80"
 	"periph.io/x/periph/devices/ssd1306"
 )
 
@@ -150,28 +149,18 @@ func buildEnvironmentalSensor(config *environmentalConfig, synapse synapse.Proto
 		return nil, err
 	}
 
-	options := &bmxx80.Opts{
-		Temperature: bmxx80.O16x,
-		Pressure:    bmxx80.O16x,
-		Humidity:    bmxx80.O16x,
-	}
-
-	device, err := bmxx80.NewI2C(i2cBus, 0x76, options)
+	sensor, err := hypothalamus.NewBME280(i2cBus, 0x76)
 	if err != nil {
 		return nil, err
 	}
 
-	sensor := hypothalamus.NewBME280(device)
 	if !(config.StatusTopic == "" || synapse == nil) {
 		period := 10 * time.Minute
 		if config.Period != 0 {
 			period = time.Duration(config.Period) * time.Second
 		}
-		if measurements, err := sensor.SenseContinuous(period); err == nil {
-			go publishMeasurements(synapse, measurements, config.StatusTopic)
-		} else {
-			return nil, err
-		}
+		measurements := sensor.SenseContinuous(period)
+		go publishMeasurements(synapse, measurements, config.StatusTopic)
 	}
 
 	return sensor, nil
