@@ -30,8 +30,8 @@ func assertRectangle(t *testing.T, expected, actual image.Rectangle) {
 	}
 }
 
-func assertScreenRender(t *testing.T, screen *Screen) {
-	if err := screen.Render(); err != nil {
+func assertScreenRender(t *testing.T, screen *Screen, content Widget) {
+	if err := screen.Render(content); err != nil {
 		t.Errorf("failed to render: %s", err.Error())
 	}
 }

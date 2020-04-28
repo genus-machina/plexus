@@ -61,8 +61,7 @@ func display(logger *log.Logger, state *store, args []string) error {
 	var err error
 	var png amygdala.Widget
 	if png, err = amygdala.NewPNG(args[0]); err == nil {
-		state.Devices.Screen.SetContent(png)
-		err = state.Devices.Screen.Render()
+		err = state.Devices.Screen.Render(png)
 	}
 	return err
 }
@@ -108,5 +107,33 @@ func quit(logger *log.Logger, state *store, args []string) error {
 	state.Devices.Halt()
 	logger.Println("Goodbye!")
 	os.Exit(0)
+	return nil
+}
+
+func rotate(logger *log.Logger, state *store, args []string) error {
+	if l := len(args); l < 1 {
+		return errors.New("display requires a rotation angle.")
+	}
+
+	if state.Devices == nil {
+		return errors.New("No devices have been loaded.")
+	}
+
+	if state.Devices.Screen == nil {
+		return errors.New("No screen has been configured.")
+	}
+
+	switch args[0] {
+	default:
+	case "0":
+		state.Devices.Screen.Rotate(amygdala.IMAGE_ROTATE_0)
+	case "90":
+		state.Devices.Screen.Rotate(amygdala.IMAGE_ROTATE_90)
+	case "180":
+		state.Devices.Screen.Rotate(amygdala.IMAGE_ROTATE_180)
+	case "270":
+		state.Devices.Screen.Rotate(amygdala.IMAGE_ROTATE_270)
+	}
+
 	return nil
 }

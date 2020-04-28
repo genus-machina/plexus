@@ -23,9 +23,8 @@ func TestScreenRenderTextBox(t *testing.T) {
 	display, screen := createTestScreen()
 	face := NewFontFace(8)
 	text := NewTextBox(face, "test string")
-	screen.SetContent(text)
+	assertScreenRender(t, screen, text)
 	assertRectangle(t, display.Bounds(), text.Bounds())
-	assertScreenRender(t, screen)
 	saveImage(t, "screen", display.Img)
 }
 
@@ -36,9 +35,8 @@ func TestScreenRenderCell(t *testing.T) {
 	cell := NewCell(text)
 	cell.Align(AlignMiddle)
 	cell.Justify(JustifyCenter)
-	screen.SetContent(cell)
+	assertScreenRender(t, screen, cell)
 	assertRectangle(t, display.Bounds(), cell.Bounds())
-	assertScreenRender(t, screen)
 	saveImage(t, "screen", display.Img)
 }
 
@@ -65,9 +63,37 @@ func TestScreenRenderColumn(t *testing.T) {
 	cell.Justify(JustifyRight)
 	column.AppendRow(cell, nil)
 
-	screen.SetContent(column)
+	assertScreenRender(t, screen, column)
 	assertRectangle(t, display.Bounds(), column.Bounds())
-	assertScreenRender(t, screen)
+	saveImage(t, "screen", display.Img)
+}
+
+func TestScreenRenderColumnRotated(t *testing.T) {
+	display, screen := createTestScreen()
+	face := NewFontFace(8)
+	column := NewColumn()
+
+	text := NewTextBox(face, "one")
+	cell := NewCell(text)
+	cell.Align(AlignTop)
+	cell.Justify(JustifyLeft)
+	column.AppendRow(cell, nil)
+
+	text = NewTextBox(face, "two")
+	cell = NewCell(text)
+	cell.Align(AlignMiddle)
+	cell.Justify(JustifyCenter)
+	column.AppendRow(cell, nil)
+
+	text = NewTextBox(face, "three")
+	cell = NewCell(text)
+	cell.Align(AlignBottom)
+	cell.Justify(JustifyRight)
+	column.AppendRow(cell, nil)
+
+	screen.Rotate(IMAGE_ROTATE_90)
+	assertScreenRender(t, screen, column)
+	assertRectangle(t, image.Rect(0, 0, 64, 128), column.Bounds())
 	saveImage(t, "screen", display.Img)
 }
 
@@ -106,8 +132,7 @@ func TestScreenLayout(t *testing.T) {
 	cell.Justify(JustifyCenter)
 	column.AppendRow(cell, nil)
 
-	screen.SetContent(column)
+	assertScreenRender(t, screen, column)
 	assertRectangle(t, display.Bounds(), column.Bounds())
-	assertScreenRender(t, screen)
 	saveImage(t, "screen", display.Img)
 }

@@ -40,6 +40,8 @@ func execute(logger *log.Logger, command []string, state *store) error {
 		err = load(logger, state, args)
 	case "quit":
 		quit(logger, state, args)
+	case "rotate":
+		rotate(logger, state, args)
 	default:
 		return fmt.Errorf("Unrecognized command '%s'.", name)
 	}

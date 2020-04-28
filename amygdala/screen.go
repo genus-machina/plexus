@@ -8,8 +8,8 @@ import (
 )
 
 type Screen struct {
-	display display.Drawer
-	widget  Widget
+	display  display.Drawer
+	rotation int
 }
 
 func NewScreen(display display.Drawer) *Screen {
@@ -27,13 +27,14 @@ func (screen *Screen) Clear() error {
 	return screen.display.Draw(screen.display.Bounds(), buffer, image.Pt(0, 0))
 }
 
-func (screen *Screen) SetContent(widget Widget) {
-	widget.SetBounds(screen.display.Bounds())
-	screen.widget = widget
+func (screen *Screen) Render(content Widget) error {
+	buffer := image.NewNRGBA(screen.display.Bounds())
+	canvas := NewRotatedImage(buffer, screen.rotation)
+	content.SetBounds(canvas.Bounds())
+	content.Render(canvas)
+	return screen.display.Draw(screen.display.Bounds(), buffer, image.Pt(0, 0))
 }
 
-func (screen *Screen) Render() error {
-	buffer := image.NewNRGBA(screen.display.Bounds())
-	screen.widget.Render(buffer)
-	return screen.display.Draw(screen.display.Bounds(), buffer, image.Pt(0, 0))
+func (screen *Screen) Rotate(rotation int) {
+	screen.rotation = rotation
 }
