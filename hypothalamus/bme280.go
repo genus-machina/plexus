@@ -28,9 +28,9 @@ func (device *BME280) buildDevice() error {
 	var err error
 
 	options := &bmxx80.Opts{
-		Temperature: bmxx80.O16x,
-		Pressure:    bmxx80.O16x,
-		Humidity:    bmxx80.O16x,
+		Temperature: bmxx80.O1x,
+		Pressure:    bmxx80.O1x,
+		Humidity:    bmxx80.O1x,
 	}
 
 	device.device, err = bmxx80.NewI2C(device.bus, device.address, options)
