@@ -38,6 +38,8 @@ func execute(logger *log.Logger, command []string, state *store) error {
 		err = publish(logger, state, args)
 	case "load":
 		err = load(logger, state, args)
+	case "play":
+		err = play(logger, state, args)
 	case "quit":
 		quit(logger, state, args)
 	case "rotate":

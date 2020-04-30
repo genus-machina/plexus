@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/zygote"
@@ -77,6 +78,33 @@ func load(logger *log.Logger, state *store, args []string) error {
 			state.Devices.DeviceBus.Halt()
 		}
 		state.Devices = devices
+	}
+	return err
+}
+
+func play(logger *log.Logger, state *store, args []string) error {
+	if l := len(args); l < 1 {
+		return errors.New("play requires a file path.")
+	}
+
+	if state.Devices == nil {
+		return errors.New("No devices have been loaded.")
+	}
+
+	if state.Devices.Screen == nil {
+		return errors.New("No screen has been configured.")
+	}
+
+	var err error
+	var gif *amygdala.GIF
+	if gif, err = amygdala.NewGIF(args[0]); err == nil {
+		defer gif.Halt()
+
+		for start := time.Now(); time.Now().Before(start.Add(10 * time.Second)); {
+			if err := state.Devices.Screen.Render(gif); err != nil {
+				return err
+			}
+		}
 	}
 	return err
 }

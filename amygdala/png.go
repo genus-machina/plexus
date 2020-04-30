@@ -5,8 +5,6 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
-
-	xdraw "golang.org/x/image/draw"
 )
 
 type PNG struct {
@@ -36,24 +34,9 @@ func (widget *PNG) Bounds() image.Rectangle {
 }
 
 func (widget *PNG) Render(canvas draw.Image) {
-	xdraw.CatmullRom.Scale(canvas, widget.bounds, widget.content, widget.content.Bounds(), draw.Src, nil)
+	scaleImage(canvas, widget.bounds, widget.content, widget.content.Bounds())
 }
 
 func (widget *PNG) SetBounds(bounds image.Rectangle) {
-	contentAspectRatio := float64(widget.content.Bounds().Dx()) / float64(widget.content.Bounds().Dy())
-	widgetAspectRatio := float64(bounds.Dx()) / float64(bounds.Dy())
-
-	var scale float64
-	if contentAspectRatio > widgetAspectRatio {
-		scale = float64(bounds.Dx()) / float64(widget.content.Bounds().Dx())
-	} else {
-		scale = float64(bounds.Dy()) / float64(widget.content.Bounds().Dy())
-	}
-
-	widget.bounds = image.Rect(
-		bounds.Min.X,
-		bounds.Min.Y,
-		bounds.Min.X+int(float64(widget.content.Bounds().Dx())*scale),
-		bounds.Min.Y+int(float64(widget.content.Bounds().Dy())*scale),
-	)
+	widget.bounds = computeImageBounds(widget.content, bounds)
 }
