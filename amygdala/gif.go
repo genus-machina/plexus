@@ -13,9 +13,10 @@ type GIF struct {
 	bounds  image.Rectangle
 	content *gif.GIF
 
-	index   int
-	mutex   sync.Mutex
-	playing bool
+	index    int
+	maxIndex int
+	mutex    sync.Mutex
+	playing  bool
 }
 
 func NewGIF(path string) (*GIF, error) {
@@ -32,30 +33,43 @@ func NewGIF(path string) (*GIF, error) {
 	}
 
 	widget.bounds = widget.content.Image[0].Bounds()
-	return widget, nil
 
+	switch widget.content.LoopCount {
+	case 0:
+		widget.maxIndex = -1
+	case -1:
+		widget.maxIndex = len(widget.content.Image)
+	default:
+		widget.maxIndex = len(widget.content.Image) * (widget.content.LoopCount + 1)
+	}
+
+	return widget, nil
 }
 
-func (widget *GIF) advanceFrame() time.Duration {
+func (widget *GIF) advanceFrame() bool {
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
 
 	if widget.playing {
-		delay := widget.getDelay(widget.index)
-		widget.index++
-		return delay
+		if widget.maxIndex < 0 || widget.index < widget.maxIndex {
+			widget.index++
+			return true
+		}
 	}
 
-	return -1
+	return false
 }
 
 func (widget *GIF) Bounds() image.Rectangle {
 	return widget.bounds
 }
 
-func (widget *GIF) getDelay(index int) time.Duration {
+func (widget *GIF) getDelay() time.Duration {
+	widget.mutex.Lock()
+	defer widget.mutex.Unlock()
+
 	length := len(widget.content.Delay)
-	delayIndex := index % length
+	delayIndex := widget.index % length
 	return time.Duration(widget.content.Delay[delayIndex]) * 10 * time.Millisecond
 }
 
@@ -68,15 +82,12 @@ func (widget *GIF) getFrame(index int) image.Image {
 func (widget *GIF) Halt() {
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
-
-	if widget.playing {
-		widget.playing = false
-	}
+	widget.playing = false
 }
 
 func (widget *GIF) play() {
-	var delay time.Duration
-	for ; delay >= 0; delay = widget.advanceFrame() {
+	for playing := true; playing; playing = widget.advanceFrame() {
+		delay := widget.getDelay()
 		time.Sleep(delay)
 	}
 }
@@ -84,6 +95,7 @@ func (widget *GIF) play() {
 func (widget *GIF) Render(canvas draw.Image) {
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
+
 	frame := widget.getFrame(widget.index)
 	scaleImage(canvas, widget.bounds, frame, frame.Bounds())
 

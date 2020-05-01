@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
-	"time"
+	"os/signal"
 
 	"github.com/genus-machina/plexus/amygdala"
 	"github.com/genus-machina/plexus/zygote"
@@ -99,10 +99,17 @@ func play(logger *log.Logger, state *store, args []string) error {
 	var gif *amygdala.GIF
 	if gif, err = amygdala.NewGIF(args[0]); err == nil {
 		defer gif.Halt()
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
 
-		for start := time.Now(); time.Now().Before(start.Add(10 * time.Second)); {
-			if err := state.Devices.Screen.Render(gif); err != nil {
-				return err
+		for {
+			select {
+			case <-c:
+				return nil
+			default:
+				if err := state.Devices.Screen.Render(gif); err != nil {
+					return err
+				}
 			}
 		}
 	}
