@@ -160,7 +160,7 @@ func buildEnvironmentalSensor(config *environmentalConfig, synapse synapse.Proto
 			period = time.Duration(config.Period) * time.Second
 		}
 		measurements := sensor.SenseContinuous(period)
-		go publishMeasurements(synapse, measurements, config.StatusTopic)
+		go publishMeasurements(synapse, measurements, config)
 	}
 
 	return sensor, nil
@@ -372,9 +372,19 @@ func parseJSON(path string) (*systemConfig, error) {
 	return &config, nil
 }
 
-func publishMeasurements(protocol synapse.Protocol, measurements <-chan hypothalamus.Environmental, topic string) {
+func publishMeasurements(protocol synapse.Protocol, measurements <-chan hypothalamus.Environmental, config *environmentalConfig) {
 	for measurement := range measurements {
-		protocol.PublishEnvironmental(measurement, topic)
+		scaled := hypothalamus.NewScaledEnvironmental(measurement)
+		if config.HumidityCoefficient != 0 {
+			scaled.ScaleHumidity(config.HumidityCoefficient, config.HumidityIntercept)
+		}
+		if config.PressureCoefficient != 0 {
+			scaled.ScalePressure(config.PressureCoefficient, config.PressureIntercept)
+		}
+		if config.TemperatureCoefficient != 0 {
+			scaled.ScaleTemperature(config.TemperatureCoefficient, config.TemperatureIntercept)
+		}
+		protocol.PublishEnvironmental(scaled, config.StatusTopic)
 	}
 }
 

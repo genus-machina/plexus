@@ -10,8 +10,14 @@ type deviceConfig struct {
 }
 
 type environmentalConfig struct {
-	Period      int    `json:"period"`
-	StatusTopic string `json:"statusTopic,omitempty"`
+	Period                 int     `json:"period"`
+	StatusTopic            string  `json:"statusTopic,omitempty"`
+	HumidityCoefficient    float64 `json:"humidityCoefficient,omitempty"`
+	HumidityIntercept      float64 `json:"humidityIntercept,omitempty"`
+	PressureCoefficient    float64 `json:"pressureCoefficient,omitempty"`
+	PressureIntercept      float64 `json:"pressureIntercept,omitempty"`
+	TemperatureCoefficient float64 `json:"temperatureCoefficient,omitempty"`
+	TemperatureIntercept   float64 `json:"temperatureIntercept,omitempty"`
 }
 
 type synapseConfig struct {
