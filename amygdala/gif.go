@@ -12,6 +12,7 @@ import (
 type GIF struct {
 	bounds  image.Rectangle
 	content *gif.GIF
+	update  chan bool
 
 	index    int
 	maxIndex int
@@ -43,21 +44,28 @@ func NewGIF(path string) (*GIF, error) {
 		widget.maxIndex = len(widget.content.Image) * (widget.content.LoopCount + 1)
 	}
 
+	widget.update = make(chan bool, 1)
 	return widget, nil
 }
 
 func (widget *GIF) advanceFrame() bool {
+	var state bool
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
 
 	if widget.playing {
 		if widget.maxIndex < 0 || widget.index < widget.maxIndex {
 			widget.index++
-			return true
+			state = true
+		}
+
+		select {
+		case widget.update <- state:
+		default:
 		}
 	}
 
-	return false
+	return state
 }
 
 func (widget *GIF) Bounds() image.Rectangle {
@@ -83,6 +91,7 @@ func (widget *GIF) Halt() {
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
 	widget.playing = false
+	close(widget.update)
 }
 
 func (widget *GIF) play() {
@@ -109,4 +118,8 @@ func (widget *GIF) SetBounds(bounds image.Rectangle) {
 	widget.mutex.Lock()
 	defer widget.mutex.Unlock()
 	widget.bounds = computeImageBounds(widget.getFrame(0), bounds)
+}
+
+func (widget *GIF) Updates() <-chan bool {
+	return widget.update
 }
