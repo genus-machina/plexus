@@ -22,6 +22,18 @@ func TestCellSetBounds(t *testing.T) {
 	assertRectangle(t, newBounds, cell.Bounds())
 }
 
+func TestCellSetBoundsScaled(t *testing.T) {
+	gif, _ := NewGIF("ballerine.gif")
+	defer gif.Halt()
+
+	bounds := image.Rect(0, 0, 12, 12)
+	cell := NewCell(gif)
+	cell.Align(AlignMiddle)
+	cell.Justify(JustifyCenter)
+	cell.SetBounds(bounds)
+	assertRectangle(t, image.Rect(1, 0, 10, 10), gif.Bounds())
+}
+
 func TestCellRenderDefault(t *testing.T) {
 	canvas, content, cell := createTestCell()
 	cell.SetBounds(canvas.Bounds())

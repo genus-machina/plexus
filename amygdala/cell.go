@@ -101,34 +101,37 @@ func (widget *Cell) SetBounds(bounds image.Rectangle) {
 	widget.bounds = bounds
 	paddedBounds := widget.paddedBounds()
 
+	var contentBounds image.Rectangle
 	if paddedBounds.Dx() < widget.contentBounds.Dx() || paddedBounds.Dy() < widget.contentBounds.Dy() {
 		widget.content.SetBounds(paddedBounds)
-		return
+		contentBounds = widget.content.Bounds()
+	} else {
+		contentBounds = widget.contentBounds
 	}
 
 	minX := paddedBounds.Min.X
-	minY := paddedBounds.Max.Y - widget.contentBounds.Dy()
-	maxX := paddedBounds.Min.X + widget.contentBounds.Dx()
+	minY := paddedBounds.Max.Y - contentBounds.Dy()
+	maxX := paddedBounds.Min.X + contentBounds.Dx()
 	maxY := paddedBounds.Max.Y
 
 	switch widget.alignment {
 	case AlignBottom:
 	case AlignMiddle:
-		minY = paddedBounds.Min.Y + (paddedBounds.Dy()-widget.contentBounds.Dy())/2
-		maxY = minY + widget.contentBounds.Dy()
+		minY = paddedBounds.Min.Y + (paddedBounds.Dy()-contentBounds.Dy())/2
+		maxY = minY + contentBounds.Dy()
 	case AlignTop:
 		minY = paddedBounds.Min.Y
-		maxY = minY + widget.contentBounds.Dy()
+		maxY = minY + contentBounds.Dy()
 	}
 
 	switch widget.justification {
 	case JustifyCenter:
-		minX = paddedBounds.Min.X + (paddedBounds.Dx()-widget.contentBounds.Dx())/2
-		maxX = minX + widget.contentBounds.Dx()
+		minX = paddedBounds.Min.X + (paddedBounds.Dx()-contentBounds.Dx())/2
+		maxX = minX + contentBounds.Dx()
 	case JustifyLeft:
 	case JustifyRight:
 		maxX = paddedBounds.Max.X
-		minX = maxX - widget.contentBounds.Dx()
+		minX = maxX - contentBounds.Dx()
 	}
 
 	widget.content.SetBounds(image.Rect(minX, minY, maxX, maxY))
