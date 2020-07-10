@@ -78,7 +78,9 @@ func buildButton(config *deviceConfig, synapse synapse.Protocol) (medulla.Device
 		return nil, errors.New("A GPIO pin is required.")
 	}
 
-	device, err := triggers.NewButton(config.Name, gpioreg.ByName(config.Pin))
+	inverted := config.Driver == ""
+
+	device, err := triggers.NewButton(config.Name, gpioreg.ByName(config.Pin), inverted)
 	if err != nil {
 		return nil, err
 	}

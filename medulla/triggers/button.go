@@ -11,16 +11,21 @@ type Button struct {
 	gpioTrigger
 }
 
-func NewButton(name string, pin gpio.PinIO) (*Button, error) {
+func NewButton(name string, pin gpio.PinIO, inverted bool) (*Button, error) {
 	device := new(Button)
 	device.debouncePeriod = 200 * time.Millisecond
 	device.denoisePeriod = 10 * time.Millisecond
-	device.inverted = true
+	device.inverted = inverted
 	device.name = name
 	device.pin = pin
 	device.subscriptions = make([]chan medulla.DeviceState, 0)
 
-	if err := device.pin.In(gpio.PullUp, gpio.BothEdges); err != nil {
+	pull := gpio.PullDown
+	if device.inverted {
+		pull = gpio.PullUp
+	}
+
+	if err := device.pin.In(pull, gpio.BothEdges); err != nil {
 		return nil, err
 	}
 

@@ -14,8 +14,8 @@ func assertActivate(t *testing.T, device medulla.Actuator) {
 	}
 }
 
-func assertButton(t *testing.T, name string, pin gpio.PinIO) *Button {
-	if button, err := NewButton(name, pin); err == nil {
+func assertButton(t *testing.T, name string, pin gpio.PinIO, inverted bool) *Button {
+	if button, err := NewButton(name, pin, inverted); err == nil {
 		return button
 	} else {
 		t.Errorf("failed to create button '%s': %s", name, err.Error())

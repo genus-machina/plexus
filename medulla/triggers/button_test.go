@@ -13,7 +13,7 @@ func TestButtonHalt(t *testing.T) {
 	name := "test"
 	pin := new(gpiotest.Pin)
 	pin.EdgesChan = make(chan gpio.Level)
-	button := assertButton(t, name, pin)
+	button := assertButton(t, name, pin, false)
 
 	assertIsNotHalted(t, button)
 	assertHalt(t, button)
@@ -24,7 +24,7 @@ func TestButtonName(t *testing.T) {
 	name := "test"
 	pin := new(gpiotest.Pin)
 	pin.EdgesChan = make(chan gpio.Level)
-	button := assertButton(t, name, pin)
+	button := assertButton(t, name, pin, false)
 	assertName(t, button, name)
 }
 
@@ -32,7 +32,40 @@ func TestButtonState(t *testing.T) {
 	name := "test"
 	pin := new(gpiotest.Pin)
 	pin.EdgesChan = make(chan gpio.Level)
-	button := assertButton(t, name, pin)
+	button := assertButton(t, name, pin, false)
+	states := assertSubscribe(t, button)
+	results := make([]medulla.DeviceState, 0)
+
+	assertPullDown(t, pin)
+	assertIsInactive(t, button)
+
+	go func() {
+		pin.EdgesChan <- gpio.High
+	}()
+
+	results = append(results, <-states)
+	assertIsActive(t, button)
+	<-time.After(100 * time.Millisecond)
+
+	go func() {
+		pin.EdgesChan <- gpio.Low
+	}()
+
+	results = append(results, <-states)
+	assertIsInactive(t, button)
+
+	expected := []medulla.DeviceState{
+		medulla.NewDeviceState(true, false, time.Unix(0, 0)),
+		medulla.NewDeviceState(false, false, time.Unix(0, 0)),
+	}
+	assertStates(t, expected, results)
+}
+
+func TestButtonInvertedState(t *testing.T) {
+	name := "test"
+	pin := new(gpiotest.Pin)
+	pin.EdgesChan = make(chan gpio.Level)
+	button := assertButton(t, name, pin, true)
 	states := assertSubscribe(t, button)
 	results := make([]medulla.DeviceState, 0)
 
@@ -65,7 +98,7 @@ func TestButtonSubscribeError(t *testing.T) {
 	name := "test"
 	pin := new(gpiotest.Pin)
 	pin.EdgesChan = make(chan gpio.Level)
-	button := assertButton(t, name, pin)
+	button := assertButton(t, name, pin, false)
 	assertHalt(t, button)
 
 	_, err := button.Subscribe()
