@@ -101,6 +101,16 @@ func (bus *DeviceBus) RegisterDevice(device medulla.Device) error {
 	return nil
 }
 
+func (bus *DeviceBus) State(name string) (medulla.DeviceState, error) {
+	device := bus.devices[name]
+
+	if device == nil {
+		return nil, fmt.Errorf("A device name '%s' has not been registered.", name)
+	}
+
+	return device.State(), nil
+}
+
 func (bus *DeviceBus) Subscribe(name string) (<-chan medulla.DeviceState, error) {
 	trigger, err := bus.getTrigger(name)
 	if err != nil {

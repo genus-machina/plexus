@@ -124,3 +124,31 @@ func TestDeviceBusRegisterDuplicate(t *testing.T) {
 	assertError(t, bus.RegisterDevice(actuator), "registered")
 	assertError(t, bus.RegisterDevice(trigger), "registered")
 }
+
+func TestDeviceBusState(t *testing.T) {
+	bus := New(logger)
+	indicator := actuators.NewSimulator("test indicator")
+	assertRegister(t, bus, indicator)
+
+	if state, err := bus.State("test indicator"); err == nil {
+		if state.IsActive() {
+			t.Errorf("device is active")
+		}
+	} else {
+		t.Errorf("failed to get device state: %s\n", err.Error())
+	}
+
+	assertActivate(t, bus, "test indicator")
+
+	if state, err := bus.State("test indicator"); err == nil {
+		if !state.IsActive() {
+			t.Errorf("device is inactive")
+		}
+	} else {
+		t.Errorf("failed to get device state: %s\n", err.Error())
+	}
+
+	if _, err := bus.State("missing"); err == nil {
+		t.Error("Expected error but got none")
+	}
+}
